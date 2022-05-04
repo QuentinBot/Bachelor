@@ -1,0 +1,7 @@
+SELECT ?drug ?title WHERE {
+    ?drug drugbank:drugCategory drugcategory:micronutrient .
+    ?durg drugbank:casRegistryNumber ?id .
+    ?keggDrug rdf:type kegg:Drug .
+    ?keggDrug bio2RDF:xRef ?id .
+    ?keggDrug purl:title ?title .
+}

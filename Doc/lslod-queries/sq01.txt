@@ -1,0 +1,11 @@
+SELECT ?genericName ?indication WHERE {
+    {
+        ?dn drugbank:genericName ?genericName ;
+        drugbank:indication ?indication .
+    }
+    UNION
+    {
+        ?dn dailymed:name ?genericName ;
+        dailymed:indication ?indication .
+    }
+}

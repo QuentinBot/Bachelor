@@ -1,0 +1,9 @@
+PREFIX route:
+    <http://www4.wiwiss.fu-berlin.de/dailymed/resource/routeOfAdministration/>
+SELECT DISTINCT ?drugLabel ?ingredientLabel WHERE {
+    ?drug rdfs:label ?drugLabel .
+    ?drug dailymed:routeOfAdministration route:Oral .
+    ?drug dailymed:activeIngredient ?ingredient .
+    ?ingredient a dailymed:ingredients .
+    ?ingredient rdfs:label ?ingredientLabel .
+}

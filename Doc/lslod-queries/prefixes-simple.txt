@@ -1,0 +1,12 @@
+PREFIX bio2RDF: <http://www.bio2rdf.org/ns/bio2rdf#>
+PREFIX dailymed: <http://www4.wiwiss.fu-berlin.de/dailymed/resource/dailymed/>
+PREFIX diseasome: <http://www4.wiwiss.fu-berlin.de/diseasome/resource/diseasome>
+PREFIX drugbank: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugbank/>
+PREFIX drugcategory: <http://www4.wiwiss.fu-berlin.de/drugbank/resource/drugcategory>
+PREFIX kegg: <http://bio2rdf.org/ns/kegg#>
+PREFIX linkedCT: <http://data.linkedct.org/resource/linkedct/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX purl: <http://purl.org/dc/elements/1.1/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX sider: <http://www4.wiwiss.fu-berlin/sider/resource/sider/>

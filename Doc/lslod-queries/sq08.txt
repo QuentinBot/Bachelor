@@ -1,0 +1,5 @@
+SELECT ?drug ?disease ?label WHERE {
+    ?disease diseasome:name ?diseasename .
+    ?disease drugbank:possibleDiseaseTarget ?drug .
+    ?drug rdfs:label ?label .
+}

@@ -1,0 +1,77 @@
+Some experiment results could not be visualized within the result analysis.
+\autoref{tab:exec_time} presents the query execution time of the different query engines on the simple queries from the LSLOD benchmark.
+The execution times are rounded to the fourth decimal place.
+\autoref{sec:empirical_evaluation} reports this results using bar charts.
+\autoref{tab:cardinality} presents the number of results obtained by each engine for every query.
+This table was replaced by a smaller version (\autoref{tab:cardinality_rdf}) due to the complete answers of all versions of Ontario despite the data format.
+\autoref{tab:cardinality:aq} and \autoref{tab:exec_time:aq} show the number of retrieved results and query execution time of the additional queries, respectively.
+
+\begin{sidewaystable}[!htbp]
+    \centering
+    \small
+    \begin{tabularx}{\linewidth}{r Y Y Y c Y Y Y Y c c}
+         \hline\textbf{Query Engine} &\textbf{SQ1} &\textbf{SQ2} &\textbf{SQ3} &\textbf{SQ4} &\textbf{SQ5} &\textbf{SQ6} &\textbf{SQ7} &\textbf{SQ8} &\textbf{SQ9} &\textbf{SQ10}\\\hline
+         FedX &0.7674 &0.6279 &1.8250 &113.3612 &6.8227 &2.3914 &0.7237 &5.1216 &\textbf{--} &79.2462\\
+         ANAPSID &0.4119 &2.3799 &\textbf{--} &1.9615 &2.0421 &\textbf{0.6221} &0.0715 &0.7437 &\textbf{38.1960} &11.6569\\
+         MULDER &0.5309 &\textbf{0.0479} &4.2815 &\textbf{0.0635} &0.6743 &0.8850 &\textbf{0.0506} &0.9799 &59.2715 &7.7527\\\hline
+         Ontario-RDF &0.5033 &0.0541 &0.5674 &0.0721 &0.7093 &0.7691 &0.0577 &0.8654 &58.5209 &7.2970\\
+         Ontario-RDB &0.3586 &0.4553 &0.8694 &1.2392 &2.7043 &0.6668 &2.0979 &0.6937 &42.7880 &2.4489\\
+         Ontario &0.5503 &0.1256 &\textbf{0.5149} &0.1416 &0.5471 &0.6816 &2.3100 &0.7355 &56.9758 &\textbf{2.4156}\\\hline
+         Ontario-GH-RDF &0.5033 &1.1560 &0.5679 &0.0710 &0.7253 &0.7547 &0.0821 &0.8684 &58.7231 &7.5339\\
+         Ontario-GH-RDB &\textbf{0.3553} &0.4515 &0.8577 &1.2460 &2.6312 &0.6804 &1.7324 &0.6878 &42.6883 &2.4371\\
+         Ontario-GH &0.5062 &0.1376 &0.5837 &0.1321 &0.5649 &0.7042 &2.2043 &0.7404 &58.3286 &2.5436\\\hline
+         Ontario-SSH-RDF &0.5147 &0.0548 &0.5640 &0.0710 &0.7520 &1.6583 &0.0560 &1.6519 &58.1081 &7.5212\\
+         Ontario-SSH-RDB &0.3652 &0.4305 &0.8646 &1.2467 &2.7087 &0.6763 &1.7185 &\textbf{0.6811} &42.5063 &2.6146\\
+         Ontario-SSH &0.5173 &0.1241 &0.5667 &0.1442 &\textbf{0.5467} &0.7079 &2.2930 &0.7210 &57.1575 &2.4855\\
+    \end{tabularx}
+    \caption[Query Execution Time]{\textbf{Query Execution Time} in seconds, a dash representing time out or unanswered.}
+    \label{tab:exec_time}
+\end{sidewaystable}
+
+\begin{sidewaystable}[!htbp]
+    \centering
+    \small
+    \begin{tabularx}{0.9\linewidth}{r Y Y Y Y Y Y Y Y c Y}
+         \hline\textbf{Query Engine} &\textbf{SQ1} &\textbf{SQ2} &\textbf{SQ3} &\textbf{SQ4} &\textbf{SQ5} &\textbf{SQ6} &\textbf{SQ7} &\textbf{SQ8} &\textbf{SQ9} &\textbf{SQ10}\\\hline
+         FedX &5,146 &\textbf{1} &393 &\textbf{24} &1,620 &8,120 &27 &8,201 &\textbf{--} &\textbf{8,708}\\
+         ANAPSID &5,146 &3 &\textbf{0} &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         MULDER &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\\hline
+         Ontario-RDF &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         Ontario-RDB &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         Ontario &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\\hline
+         Ontario-GH-RDF &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         Ontario-GH-RDB &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         Ontario-GH &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\\hline
+         Ontario-SSH-RDF &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         Ontario-SSH-RDB &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\
+         Ontario-SSH &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\\hline
+         \textbf{ground truth} &5,146 &3 &393 &28 &1,620 &8,120 &27 &8,201 &524,694 &9,174\\\hline
+    \end{tabularx}
+    \caption[Query Answer Cardinality]{\textbf{Query Answer Cardinality}, a dash represents timed out queries.}
+    \label{tab:cardinality}
+\end{sidewaystable}
+
+\begin{table}[!hp]
+    \centering
+    \begin{tabularx}{0.66\linewidth}{r Y Y Y Y}
+        \hline\textbf{Query Engine} &\textbf{AQ1} &\textbf{AQ2} &\textbf{AQ3} &\textbf{AQ4}\\\hline
+        Ontario-RDB &2 &5,304 &2,340 &1,187\\
+        Ontario-GH-RDB &2 &5,304 &2,340 &1,187\\
+        Ontario-SSH-RDB &2 &5,304 &2,340 &1,187\\\hline
+        \textbf{ground truth} &2 &5,304 &2,340 &1,187
+    \end{tabularx}
+    \caption[Cardinality of Additional Queries]{\textbf{Cardinality of Additional Queries}}
+    \label{tab:cardinality:aq}
+\end{table}
+
+\begin{table}[!hp]
+    \centering
+    \begin{tabularx}{0.66\linewidth}{r Y Y Y Y}
+        \hline\textbf{Query Engine} &\textbf{AQ1} &\textbf{AQ2} &\textbf{AQ3} &\textbf{AQ4}\\\hline
+        Ontario-RDB     &0.8316   &0.7290   &0.5250   &0.3942\\
+        Ontario-GH-RDB  &1.1573   &0.7164   &0.5208   &0.4133\\
+        Ontario-SSH-RDB &1.0833   &2.3282   &2.1544   &0.4887
+    \end{tabularx}
+    \caption[Query Execution Time of Additional Queries]{\textbf{Query Execution Time of Additional Queries} in seconds}
+    \label{tab:exec_time:aq}
+\end{table}

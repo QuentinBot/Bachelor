@@ -1,0 +1,9 @@
+SELECT ?drug ?title ?cf WHERE {
+    ?drug drugbank:casRegistryNumber ?id .
+    ?keggDrug rdf:type kegg:Drug .
+    ?keggDrug bio2RDF:xRef ?id .
+    ?keggDrug purl:title ?title .
+    ?drug drugbank:chemicalFormula ?cf .
+    FILTER(?cf = "C8H10N4O2")
+}
+
