@@ -14,6 +14,13 @@ def read_tei(tei_file):
     raise RuntimeError("Cannot generate a soup from the input")
 
 
+def elem_to_text(elem, default="-"):
+    if elem:
+        return elem.getText()
+    else:
+        return default
+
+
 def main():
 
     path = "Doc/articles/XML"
@@ -26,12 +33,13 @@ def main():
         article_data = {}
         soup = read_tei(path + "/" + file)
 
-        article_data["Title"] = soup.title.getText()
-        article_data["DOI"] = soup.find("idno", type="DOI").getText()
+        article_data["Title"] = elem_to_text(soup.title)
+        article_data["DOI"] = elem_to_text(soup.find("idno", type="DOI"))
         first_author = soup.analytic.find("author").persName
-        firstname = first_author.find("forename", type="first").getText()
-        surname = first_author.find("surname").getText()
-        article_data["FirstAuthor"] = surname + ", " + firstname
+        if first_author:
+            firstname = elem_to_text(first_author.find("forename", type="first"))
+            surname = elem_to_text(first_author.find("surname"))
+            article_data["FirstAuthor"] = surname + ", " + firstname
 
         """
         text = extract_text("Doc/articles/" + file)
@@ -55,12 +63,14 @@ def main():
 
         total_data.append(article_data)
         i += 1
-        break
-        if i == 10:
+        # break
+        if i == 1000:
             break
 
     for data in total_data:
         print(data)
+    
+    print(i)
 
 
 if __name__ == "__main__":
