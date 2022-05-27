@@ -7,13 +7,15 @@ import spacy
 import os
 
 
-def read_tei(tei_file):
-    with open(tei_file, "r") as tei:
-        soup = BeautifulSoup(tei, "lxml-xml")
+# function for reading the tei-xml file
+def read_file(file):
+    with open(file, "r") as f:
+        soup = BeautifulSoup(f, "lxml-xml")
         return soup
-    raise RuntimeError("Cannot generate a soup from the input")
+    raise RuntimeError("Could not generate soup from given inputfile")
 
 
+# function for returning text of element in xml-file
 def elem_to_text(elem, default="-"):
     if elem:
         return elem.getText()
@@ -23,23 +25,34 @@ def elem_to_text(elem, default="-"):
 
 def main():
 
+    # the path to the articles, all saved as tei-xml files
     path = "Doc/articles/XML"
+
+    # get every file in the directory
     directories = os.listdir(path)
+
+    # tool for deeper language processing, maybe not needed
     # nlp = spacy.load("en_core_web_sm")
 
+    # this array will store the data for every single article
     total_data = []
     i = 0
     for file in directories:
-        article_data = {}
-        soup = read_tei(path + "/" + file)
 
+        # each article has a dictionary where the information is stored
+        article_data = {}
+        soup = read_file(path + "/" + file)
+
+        # now we will first try to retrieve the title, doi and the first named author
         article_data["Title"] = elem_to_text(soup.title)
         article_data["DOI"] = elem_to_text(soup.find("idno", type="DOI"))
-        first_author = soup.analytic.find("author").persName
+        first_author = soup.find("author").persName
         if first_author:
             firstname = elem_to_text(first_author.find("forename", type="first"))
             surname = elem_to_text(first_author.find("surname"))
             article_data["FirstAuthor"] = surname + ", " + firstname
+        else:
+            article_data["FirstAuthor"] = "-"
 
         """
         text = extract_text("Doc/articles/" + file)
@@ -61,6 +74,7 @@ def main():
         
         """
 
+        # finally we will add the article data to our total data
         total_data.append(article_data)
         i += 1
         # break
