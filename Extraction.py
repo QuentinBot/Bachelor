@@ -10,7 +10,7 @@ import os
 # function for reading the tei-xml file
 def read_file(file):
     with open(file, "r") as f:
-        soup = BeautifulSoup(f, "lxml-xml")
+        soup = BeautifulSoup(f, "lxml")
         return soup
     raise RuntimeError("Could not generate soup from given inputfile")
 
@@ -46,13 +46,29 @@ def main():
         # now we will first try to retrieve the title, doi and the first named author
         article_data["Title"] = elem_to_text(soup.title)
         article_data["DOI"] = elem_to_text(soup.find("idno", type="DOI"))
-        first_author = soup.find("author").persName
+
+        first_author = soup.find("author").persname
         if first_author:
             firstname = elem_to_text(first_author.find("forename", type="first"))
+            middlename = elem_to_text(first_author.find("forename", type="middle"))
+            if middlename != "-" :
+                firstname = firstname + " " + middlename
             surname = elem_to_text(first_author.find("surname"))
             article_data["FirstAuthor"] = surname + ", " + firstname
-        else:
-            article_data["FirstAuthor"] = "-"
+
+        # find one table and create a pandas dataframe
+        tables = soup.find("table")
+        if tables:
+            final_table = []
+            for row in tables.find_all("row"):
+                cols = row.find_all("cell")
+                row_list = [ dat.text for dat in cols]
+                if len(final_table) != 0 and len(row_list) != len(final_table[0]):
+                    continue
+                final_table.append(row_list)
+            panda = pd.DataFrame(final_table)
+            print(panda)
+
 
         """
         text = extract_text("Doc/articles/" + file)
@@ -78,7 +94,7 @@ def main():
         total_data.append(article_data)
         i += 1
         # break
-        if i == 1000:
+        if i == 10:
             break
 
     for data in total_data:
