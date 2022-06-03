@@ -67,8 +67,13 @@ def main():
                     continue
                 final_table.append(row_list)
             panda = pd.DataFrame(final_table)
-            print(panda)
+            # print(panda)
 
+        # let's take a look at the results section
+        divs = soup.findAll("div", xmlns="http://www.tei-c.org/ns/1.0")
+        for div in divs:
+            if elem_to_text(div).__contains__("Results"):
+                print(elem_to_text(div))
 
         """
         text = extract_text("Doc/articles/" + file)
@@ -93,7 +98,7 @@ def main():
         # finally we will add the article data to our total data
         total_data.append(article_data)
         i += 1
-        # break
+        break
         if i == 10:
             break
 
