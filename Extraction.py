@@ -30,9 +30,10 @@ def main():
 
     # get every file in the directory
     directories = os.listdir(path)
+    directories.sort()
 
     # tool for deeper language processing, maybe not needed
-    # nlp = spacy.load("en_core_web_sm")
+    nlp = spacy.load("en_core_web_sm")
 
     # this array will store the data for every single article
     total_data = []
@@ -69,11 +70,40 @@ def main():
             panda = pd.DataFrame(final_table)
             # print(panda)
 
-        # let's take a look at the results section
+
+        # now let's take a look at the results section
+        found_results = False
+        # these are the air pollutants that we need to take a look at
+        pollutants = ["NO 2", "PM 2.5", "PM 10", "BC", "NO X", "CO", "O 3", "SO 2", "NH 3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO 3", "SO 4", "OM", "PM 1", "BBOA", "HOA", "OOA"]
         divs = soup.findAll("div", xmlns="http://www.tei-c.org/ns/1.0")
         for div in divs:
+            # finding the results section by looking for a part containing 'results'
             if elem_to_text(div).__contains__("Results"):
-                print(elem_to_text(div))
+                found_results = True
+            if found_results:
+                section = nlp(elem_to_text(div))
+                for tok in section:
+                    # look for words signalling that the air quality changed
+                    if "decrease" in tok.text or "increase" in tok.text or "reduc" in tok.text:
+                        sentence = tok.sent.text
+                        found_word = False
+                        # check if the sentence contains any information regarding air pollutants
+                        for word in pollutants:
+                            if word in sentence:
+                                found_word = True
+                                print("Found " + word + " in sentence:")
+                                print(sentence)
+                                print()
+                                break
+                        # we can (hopefully) ignore these sentences, since they do not carry any useful information
+                        if not found_word:
+                            print("No word found in sentence:")
+                            print(sentence)
+                            print()
+
+        if not found_results:
+            print("No result section found...")
+                        
 
         """
         text = extract_text("Doc/articles/" + file)
