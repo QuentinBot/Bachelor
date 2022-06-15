@@ -4,6 +4,8 @@ import numpy as np
 from bs4 import BeautifulSoup
 import lxml
 import spacy
+from spacy import displacy
+from spacy.matcher import Matcher
 import os
 
 
@@ -34,6 +36,7 @@ def main():
 
     # tool for deeper language processing, maybe not needed
     nlp = spacy.load("en_core_web_sm")
+    matcher = Matcher(nlp.vocab)
 
     # this array will store the data for every single article
     total_data = []
@@ -70,60 +73,29 @@ def main():
             panda = pd.DataFrame(final_table)
             # print(panda)
 
-
-        # now let's take a look at the results section
-        found_results = False
         # these are the air pollutants that we need to take a look at
-        pollutants = ["NO 2", "PM 2.5", "PM 10", "BC", "NO X", "CO", "O 3", "SO 2", "NH 3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO 3", "SO 4", "OM", "PM 1", "BBOA", "HOA", "OOA"]
+        pollutants = ["NO 2", "PM 2.5", "PM 10", "BC", "NO X", "CO", "O 3", "SO 2", "NH 3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO 3", "SO 4", "OM", "BBOA", "HOA", "OOA"]
+        pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA"]
         divs = soup.findAll("div", xmlns="http://www.tei-c.org/ns/1.0")
         for div in divs:
-            # finding the results section by looking for a part containing 'results'
-            if elem_to_text(div).__contains__("Results"):
-                found_results = True
-            if found_results:
-                section = nlp(elem_to_text(div))
-                for tok in section:
-                    # look for words signalling that the air quality changed
-                    if "decrease" in tok.text or "increase" in tok.text or "reduc" in tok.text:
-                        sentence = tok.sent.text
-                        found_word = False
-                        # check if the sentence contains any information regarding air pollutants
-                        for word in pollutants:
-                            if word in sentence:
-                                found_word = True
-                                print("Found " + word + " in sentence:")
-                                print(sentence)
-                                print()
-                                break
-                        # we can (hopefully) ignore these sentences, since they do not carry any useful information
-                        if not found_word:
-                            print("No word found in sentence:")
-                            print(sentence)
-                            print()
-
-        if not found_results:
-            print("No result section found...")
-                        
-
-        """
-        text = extract_text("Doc/articles/" + file)
-        print(file)
-        doc = nlp(text)
-        no_doi = True
-
-        for e in doc.ents:
-            if e.label_ == "GPE":
-                article_data["region"] = e.text
-                break
-
-        for tok in doc:
-            # print(tok.text, "-->", tok.dep_, "-->", tok.pos_)
-
-            if no_doi and tok.text.__contains__("10."):
-                article_data["doi"] = tok.text
-                no_doi = False
-        
-        """
+            section = nlp(elem_to_text(div))
+            for sent in section.sents:
+                for p in pollutants:
+                    if p in sent.text:
+                        found_value = False
+                        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce"]}}, {"POS": "ADP"}, {"POS": {"IN": ["NOUN", "NUM"]}}]
+                        # pattern = [{'LOWER': p}, {'POS': "NUM", 'OP':"?"}, {'LOWER': "concentration", 'OP': "?"}, {"LEMMA": {"IN" ["increase", "decrease", "reduce"]}}, {"POS": "ADP"}, {"POS": {"IN" ["NOUN", "NUM"]}}]
+                        matcher.add("firstMatcher", [pattern])
+                        matches = matcher(sent)
+                        for match_id, start, end in matches:
+                            print(sent[start:end])
+                        for tok in sent:
+                            if tok.pos_ == "NUM" or "%" in tok.text:
+                                found_value = True
+                            # print(tok.text, "-->", tok.dep_, "-->", tok.pos_)
+                        # if found_value:
+                            # print(p, " ", sent)
+                            # displacy.serve(sent, style="dep")
 
         # finally we will add the article data to our total data
         total_data.append(article_data)
