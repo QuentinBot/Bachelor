@@ -83,8 +83,7 @@ def main():
                 for p in pollutants:
                     if p in sent.text:
                         found_value = False
-                        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce"]}}, {"POS": "ADP"}, {"POS": {"IN": ["NOUN", "NUM"]}}]
-                        # pattern = [{'LOWER': p}, {'POS': "NUM", 'OP':"?"}, {'LOWER': "concentration", 'OP': "?"}, {"LEMMA": {"IN" ["increase", "decrease", "reduce"]}}, {"POS": "ADP"}, {"POS": {"IN" ["NOUN", "NUM"]}}]
+                        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"DEP": "pobj"}]
                         matcher.add("firstMatcher", [pattern])
                         matches = matcher(sent)
                         for match_id, start, end in matches:
@@ -99,9 +98,11 @@ def main():
 
         # finally we will add the article data to our total data
         total_data.append(article_data)
+        print(article_data["Title"])
+        print()
         i += 1
-        break
-        if i == 10:
+        # break
+        if i == 20:
             break
 
     for data in total_data:
