@@ -75,26 +75,21 @@ def main():
 
         # these are the air pollutants that we need to take a look at
         pollutants = ["NO 2", "PM 2.5", "PM 10", "BC", "NO X", "CO", "O 3", "SO 2", "NH 3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO 3", "SO 4", "OM", "BBOA", "HOA", "OOA"]
+        # we need the pollutants without the numbers because otherwise they would count as two words 
         pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA"]
-        divs = soup.findAll("div", xmlns="http://www.tei-c.org/ns/1.0")
-        for div in divs:
-            section = nlp(elem_to_text(div))
-            for sent in section.sents:
-                for p in pollutants:
-                    if p in sent.text:
-                        found_value = False
-                        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"DEP": "pobj"}]
-                        matcher.add("firstMatcher", [pattern])
-                        matches = matcher(sent)
-                        for match_id, start, end in matches:
-                            print(sent[start:end])
-                        for tok in sent:
-                            if tok.pos_ == "NUM" or "%" in tok.text:
-                                found_value = True
-                            # print(tok.text, "-->", tok.dep_, "-->", tok.pos_)
-                        # if found_value:
-                            # print(p, " ", sent)
-                            # displacy.serve(sent, style="dep")
+        doc = nlp(soup.text)
+
+        # this is the first basic pattern to extract the pollutant's data
+        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"DEP": "pobj"}]
+        matcher.add("firstMatcher", [pattern])
+        matches = matcher(doc)
+        # let's look at all the matches we got
+        for match_id, start, end in matches:
+            print(doc[start:end])
+        """
+        for tok in doc:
+            if tok.text == "decreased" and "decreased by 20" in tok.sent.text:
+                print(tok.sent)"""
 
         # finally we will add the article data to our total data
         total_data.append(article_data)
