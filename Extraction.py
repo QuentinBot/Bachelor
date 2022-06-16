@@ -121,7 +121,7 @@ def main():
         print(data)
 
     df = pd.DataFrame(total_data)
-    df.to_csv(r"./extracted_data.csv")
+    df.to_csv(r"./extracted_data.csv", index=False)
     print(df)
     print(i)
 
