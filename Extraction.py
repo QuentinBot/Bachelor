@@ -79,12 +79,29 @@ def main():
         pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA"]
         doc = nlp(soup.text)
 
+        positive = ["increase"]
+        negative = ["decrease", "reduce", "drop"]
+
         # this is the first basic pattern to extract the pollutant's data
         pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"DEP": "pobj"}]
         matcher.add("firstMatcher", [pattern])
         matches = matcher(doc)
         # let's look at all the matches we got
         for match_id, start, end in matches:
+            span = doc[start:end]
+            for tok in span:
+                #print(tok.lemma_)
+                if tok.text in pollutants_no_number:
+                    pol = tok.text
+                    if tok.nbor().pos_ == "NUM":
+                        pol += tok.nbor().text
+                elif tok.lemma_ in positive:
+                    value = "+"
+                elif tok.lemma_ in negative:
+                    value = "-"
+                elif tok.pos_ == "NUM" and tok.nbor().dep_ == "pobj":
+                    value += tok.text + tok.nbor().text
+            article_data[pol] = value
             print(doc[start:end])
         """
         for tok in doc:
@@ -102,7 +119,10 @@ def main():
 
     for data in total_data:
         print(data)
-    
+
+    df = pd.DataFrame(total_data)
+    df.to_csv(r"./extracted_data.csv")
+    print(df)
     print(i)
 
 
