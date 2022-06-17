@@ -83,24 +83,25 @@ def main():
         negative = ["decrease", "reduce", "drop"]
 
         # this is the first basic pattern to extract the pollutant's data
-        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"DEP": "pobj"}]
+        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"TEXT": "%"}]
         matcher.add("firstMatcher", [pattern])
         matches = matcher(doc)
         # let's look at all the matches we got
         for match_id, start, end in matches:
             span = doc[start:end]
+            value = ""
             for tok in span:
                 #print(tok.lemma_)
                 if tok.text in pollutants_no_number:
                     pol = tok.text
                     if tok.nbor().pos_ == "NUM":
                         pol += tok.nbor().text
-                elif tok.lemma_ in positive:
-                    value = "+"
+                # elif tok.lemma_ in positive:
+                #     value = "+"
                 elif tok.lemma_ in negative:
                     value = "-"
                 elif tok.pos_ == "NUM" and tok.nbor().dep_ == "pobj":
-                    value += tok.text + tok.nbor().text
+                    value += tok.text # + tok.nbor().text
             article_data[pol] = value
             print(doc[start:end])
         """
@@ -114,8 +115,8 @@ def main():
         print()
         i += 1
         # break
-        if i == 20:
-            break
+        #if i == 20:
+        #    break
 
     for data in total_data:
         print(data)
