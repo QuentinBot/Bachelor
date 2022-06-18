@@ -75,7 +75,6 @@ def main():
                             # print(p + ": " + str(extracted_row[p]))
 
                 # we use this break to not check for multiple lines. This is not very accurate, but easier for now
-                break 
 
         if not doi_found:
             print(doi + " not found...")

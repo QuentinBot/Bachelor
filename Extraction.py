@@ -77,13 +77,23 @@ def main():
         pollutants = ["NO 2", "PM 2.5", "PM 10", "BC", "NO X", "CO", "O 3", "SO 2", "NH 3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO 3", "SO 4", "OM", "BBOA", "HOA", "OOA"]
         # we need the pollutants without the numbers because otherwise they would count as two words 
         pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA"]
+        pollutants_numbers = ["2", "2.5", "10", "X", "3", "4"]
         doc = nlp(soup.text)
 
-        positive = ["increase"]
+        # testing ground for finding tokens and tags
+        """
+        for tok in doc:
+            if tok.text == "17.9%to41.3" or tok.text == "17.9%" or tok.text == "17.9":
+                print("------------------------")
+                print(tok.sent)
+                print("------------------------")
+        """        
+
         negative = ["decrease", "reduce", "drop"]
+        
 
         # this is the first basic pattern to extract the pollutant's data
-        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'POS': "NUM", 'OP':"?"}, {'LEMMA': "concentration", 'OP': "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"POS": "ADP"}, {"POS": "NUM"}, {"TEXT": "%"}]
+        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
         matcher.add("firstMatcher", [pattern])
         matches = matcher(doc)
         # let's look at all the matches we got
@@ -94,7 +104,7 @@ def main():
                 #print(tok.lemma_)
                 if tok.text in pollutants_no_number:
                     pol = tok.text
-                    if tok.nbor().pos_ == "NUM":
+                    if tok.nbor().text in pollutants_numbers:
                         pol += tok.nbor().text
                 # elif tok.lemma_ in positive:
                 #     value = "+"
@@ -120,6 +130,8 @@ def main():
 
     for data in total_data:
         print(data)
+    if "PM" in total_data:
+        total_data.remove("PM")
 
     df = pd.DataFrame(total_data)
     df.to_csv(r"./extracted_data.csv", index=False)
