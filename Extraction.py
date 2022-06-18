@@ -102,12 +102,12 @@ def main():
                     value = "-"
                 elif tok.pos_ == "NUM" and tok.nbor().dep_ == "pobj":
                     value += tok.text # + tok.nbor().text
-            article_data[pol] = value
+            # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
+            if pol not in article_data:
+                article_data[pol] = [value]
+            elif value not in article_data[pol]:
+                article_data[pol].append(value)
             print(doc[start:end])
-        """
-        for tok in doc:
-            if tok.text == "decreased" and "decreased by 20" in tok.sent.text:
-                print(tok.sent)"""
 
         # finally we will add the article data to our total data
         total_data.append(article_data)
@@ -115,8 +115,8 @@ def main():
         print()
         i += 1
         # break
-        #if i == 20:
-        #    break
+        # if i == 20:
+            # break
 
     for data in total_data:
         print(data)
