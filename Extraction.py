@@ -28,6 +28,47 @@ def elem_to_text(elem, default="-"):
 
 def main():
 
+    def basic_pattern_match(matcher, doc, i, matches):
+        match_id, start, end = matches[i]
+            
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
+        span_previous = doc[start-3:start]
+        if span_previous[2].text in ["and", ","]:
+            if span_previous[1].text in pollutants_no_number or span_previous[1].text in pollutants_numbers:
+                return
+            if span_previous[1].text == "," and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
+                return
+            
+        value = ""
+        for tok in span:
+            #print(tok.lemma_)
+            if tok.text in pollutants_no_number:
+                if tok.text[0:int(len(tok.text)/2)] in pollutants_no_number:
+                    pol = tok.text[0:int(len(tok.text)/2)]
+                else:
+                    pol = tok.text
+                if show_sent:
+                    print("------ sentence found ------")
+                    print(tok.sent)
+                    print("----------------------------")
+                if tok.nbor().text in pollutants_numbers:
+                    pol += tok.nbor().text
+            # elif tok.lemma_ in positive:
+            #     value = "+"
+            elif tok.lemma_ in negative:
+                value = "-"
+            elif tok.pos_ == "NUM" and tok.nbor().dep_ == "pobj":
+                value += tok.text # + tok.nbor().text
+        # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
+        if pol not in article_data:
+            article_data[pol] = [value]
+        elif value not in article_data[pol]:
+            article_data[pol].append(value)
+        print(doc[start:end])
+
     # the path to the articles, all saved as tei-xml files
     path = "Doc/articles/XML"
 
@@ -96,48 +137,6 @@ def main():
 
         negative = ["decrease", "reduce", "drop", "decline", "plummet"]
         trend = ["increase", "decrease", "reduce", "drop", "decline", "plummet"]
-        
-        def basic_pattern_match(matcher, doc, i, matches):
-            match_id, start, end = matches[i]
-            
-            # this is the extracted passage in the text
-            span = doc[start:end]
-
-            # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
-            span_previous = doc[start-3:start]
-            if span_previous[2].text in ["and", ","]:
-                if span_previous[1].text in pollutants_no_number or span_previous[1].text in pollutants_numbers:
-                    return
-                if span_previous[1].text == "," and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
-                    return
-                
-            value = ""
-            for tok in span:
-                #print(tok.lemma_)
-                if tok.text in pollutants_no_number:
-                    if tok.text[0:int(len(tok.text)/2)] in pollutants_no_number:
-                        pol = tok.text[0:int(len(tok.text)/2)]
-                    else:
-                        pol = tok.text
-                    if show_sent:
-                        print("------ sentence found ------")
-                        print(tok.sent)
-                        print("----------------------------")
-                    if tok.nbor().text in pollutants_numbers:
-                        pol += tok.nbor().text
-                # elif tok.lemma_ in positive:
-                #     value = "+"
-                elif tok.lemma_ in negative:
-                    value = "-"
-                elif tok.pos_ == "NUM" and tok.nbor().dep_ == "pobj":
-                    value += tok.text # + tok.nbor().text
-            # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
-            if pol not in article_data:
-                article_data[pol] = [value]
-            elif value not in article_data[pol]:
-                article_data[pol].append(value)
-            print(doc[start:end])
-
 
         # this is the first basic pattern to extract the pollutant's data
         pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
