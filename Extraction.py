@@ -7,6 +7,7 @@ import spacy
 from spacy import displacy
 from spacy.matcher import Matcher
 import os
+import sys
 
 
 # function for reading the tei-xml file
@@ -42,6 +43,9 @@ def main():
     total_data = []
     i = 0
     for file in directories:
+        show_sent = False
+        if "-sentence" in sys.argv:
+            show_sent = True
 
         # each article has a dictionary where the information is stored
         article_data = {}
@@ -89,21 +93,34 @@ def main():
                 print("------------------------")
         """        
 
-        negative = ["decrease", "reduce", "drop"]
+        negative = ["decrease", "reduce", "drop", "decline"]
+        trend = ["increase", "decrease", "reduce", "drop", "decline"]
         
 
         # this is the first basic pattern to extract the pollutant's data
-        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": ["increase", "decrease", "reduce", "drop"]}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
+        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
         matcher.add("firstMatcher", [pattern])
         matches = matcher(doc)
         # let's look at all the matches we got
         for match_id, start, end in matches:
+
+            # this is the extracted passage in the text
             span = doc[start:end]
+
+            # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
+            span_previous = doc[start-2:start]
+            if span_previous[1].text in ["and", ","] and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
+                continue
+                
             value = ""
             for tok in span:
                 #print(tok.lemma_)
                 if tok.text in pollutants_no_number:
                     pol = tok.text
+                    if show_sent:
+                        print("------ sentence found ------")
+                        print(tok.sent)
+                        print("----------------------------")
                     if tok.nbor().text in pollutants_numbers:
                         pol += tok.nbor().text
                 # elif tok.lemma_ in positive:
@@ -125,8 +142,8 @@ def main():
         print()
         i += 1
         # break
-        # if i == 20:
-            # break
+        if i == 10:
+            break
 
     for data in total_data:
         print(data)
