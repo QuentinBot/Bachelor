@@ -77,10 +77,11 @@ def main():
             panda = pd.DataFrame(final_table)
             # print(panda)
 
+        #TODO: where is CO2??
         # these are the air pollutants that we need to take a look at
         pollutants = ["NO 2", "PM 2.5", "PM 10", "BC", "NO X", "CO", "O 3", "SO 2", "NH 3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO 3", "SO 4", "OM", "BBOA", "HOA", "OOA"]
         # we need the pollutants without the numbers because otherwise they would count as two words 
-        pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA"]
+        pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA", "PMPM", "NO2", "PM2.5", "PM10", "NOX", "O3", "SO2", "NH3", "NO3", "SO4"]
         pollutants_numbers = ["2", "2.5", "10", "X", "3", "4"]
         doc = nlp(soup.text)
 
@@ -93,30 +94,31 @@ def main():
                 print("------------------------")
         """        
 
-        negative = ["decrease", "reduce", "drop", "decline"]
-        trend = ["increase", "decrease", "reduce", "drop", "decline"]
+        negative = ["decrease", "reduce", "drop", "decline", "plummet"]
+        trend = ["increase", "decrease", "reduce", "drop", "decline", "plummet"]
         
-
-        # this is the first basic pattern to extract the pollutant's data
-        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
-        matcher.add("firstMatcher", [pattern])
-        matches = matcher(doc)
-        # let's look at all the matches we got
-        for match_id, start, end in matches:
-
+        def basic_pattern_match(matcher, doc, i, matches):
+            match_id, start, end = matches[i]
+            
             # this is the extracted passage in the text
             span = doc[start:end]
 
             # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
-            span_previous = doc[start-2:start]
-            if span_previous[1].text in ["and", ","] and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
-                continue
+            span_previous = doc[start-3:start]
+            if span_previous[2].text in ["and", ","]:
+                if span_previous[1].text in pollutants_no_number or span_previous[1].text in pollutants_numbers:
+                    return
+                if span_previous[1].text == "," and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
+                    return
                 
             value = ""
             for tok in span:
                 #print(tok.lemma_)
                 if tok.text in pollutants_no_number:
-                    pol = tok.text
+                    if tok.text[0:int(len(tok.text)/2)] in pollutants_no_number:
+                        pol = tok.text[0:int(len(tok.text)/2)]
+                    else:
+                        pol = tok.text
                     if show_sent:
                         print("------ sentence found ------")
                         print(tok.sent)
@@ -136,14 +138,20 @@ def main():
                 article_data[pol].append(value)
             print(doc[start:end])
 
+
+        # this is the first basic pattern to extract the pollutant's data
+        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
+        matcher.add("firstMatcher", [pattern], on_match=basic_pattern_match)   
+        matches = matcher(doc)     
+
         # finally we will add the article data to our total data
         total_data.append(article_data)
         print(article_data["Title"])
         print()
         i += 1
         # break
-        if i == 10:
-            break
+        # if i == 10:
+            # break
 
     for data in total_data:
         print(data)
