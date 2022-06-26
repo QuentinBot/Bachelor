@@ -129,17 +129,17 @@ def main():
         # testing ground for finding tokens and tags
         """
         for tok in doc:
-            if tok.text == "17.9%to41.3" or tok.text == "17.9%" or tok.text == "17.9":
+            if tok.text == "17" and tok.nbor().text == "%" or tok.text == "17.9":
                 print("------------------------")
                 print(tok.sent)
                 print("------------------------")
         """        
 
-        negative = ["decrease", "reduce", "drop", "decline", "plummet"]
-        trend = ["increase", "decrease", "reduce", "drop", "decline", "plummet"]
+        negative = ["decrease", "reduce", "drop", "decline", "plummet", "reduction"]
+        trend = ["increase", "decrease", "reduce", "drop", "decline", "plummet", "reduction"]
 
         # this is the first basic pattern to extract the pollutant's data
-        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be"]}, "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
+        pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP':"?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
         matcher.add("firstMatcher", [pattern], on_match=basic_pattern_match)   
         matches = matcher(doc)     
 
