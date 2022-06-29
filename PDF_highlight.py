@@ -2,6 +2,7 @@ import fitz
 import sys
 import os
 from pprint import pprint
+from io import BytesIO
 import pandas as pd
 
 
@@ -54,6 +55,7 @@ def extract_text(dir):
 
     print(not_found)
 
+    output_buffer = BytesIO()
     for file in directories:
         pdf = fitz.open(dir+file)
         for pg in range(len(pdf)):
@@ -62,9 +64,11 @@ def extract_text(dir):
             if not len(area) == 0:
                 highlight = page.add_highlight_annot(area)
                 highlight.update()
+        pdf.save(output_buffer)
+        pdf.close()
+        with open("test.pdf", mode="wb") as f:
+            f.write(output_buffer.getbuffer())
         break
-                     
-                
 
 
 if __name__ == "__main__":
