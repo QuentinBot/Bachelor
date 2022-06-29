@@ -64,7 +64,7 @@ def main():
 
         # here we find the corresponding DOI in the training dataset to start the evaluation
         for index_2, doi_2 in training_data["DOI"].iteritems():
-            if doi.lower() == doi_2.lower():
+            if doi.lower() in doi_2.lower() or doi_2.lower() in doi.lower():
                 doi_found = True
                 # print("DOI found!")
                 training_row = training_data.loc[index_2]
