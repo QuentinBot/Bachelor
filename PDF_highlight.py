@@ -18,6 +18,14 @@ def extract_text(dir):
         for pg in range(len(pdf)):
             page = pdf[pg]
 
+            links = page.get_links()
+            for link in links:
+                if "uri" in link and "doi.org" in link["uri"]:
+                    link_found = True
+                    article_data["DOI"] = link["uri"]
+                    break
+            if link_found:
+                break
             lines = page.get_text().splitlines()
             for line in lines:
                 line = line.strip()
@@ -26,14 +34,6 @@ def extract_text(dir):
                     link_found = True
                     article_data["DOI"] = line
                     break                    
-            if link_found:
-                break
-            links = page.get_links()
-            for link in links:
-                if "uri" in link and "doi.org" in link["uri"]:
-                    link_found = True
-                    article_data["DOI"] = link["uri"]
-                    break
             if link_found:
                 break
             
@@ -60,13 +60,13 @@ def extract_text(dir):
         pdf = fitz.open(dir+file)
         for pg in range(len(pdf)):
             page = pdf[pg]
-            area = page.search_for("decreased by 34.1%")
+            area = page.search_for("NO2 concentrations decreased by 34.1%")
             if not len(area) == 0:
                 highlight = page.add_highlight_annot(area)
                 highlight.update()
         pdf.save(output_buffer)
         pdf.close()
-        with open("test.pdf", mode="wb") as f:
+        with open("./highlighted/" + file + "_highlighted.pdf", mode="wb") as f:
             f.write(output_buffer.getbuffer())
         break
 
