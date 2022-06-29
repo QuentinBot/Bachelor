@@ -44,7 +44,7 @@ def main():
             
         value = ""
         for tok in span:
-            #print(tok.lemma_)
+            # print(tok.lemma_)
             if tok.text in pollutants_no_number:
                 if tok.text[0:int(len(tok.text)/2)] in pollutants_no_number:
                     pol = tok.text[0:int(len(tok.text)/2)]
