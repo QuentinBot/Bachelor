@@ -76,7 +76,19 @@ def extract_text(directory):
                 value = "-"
             # add the actual numerical value of the pollutant
             elif tok.pos_ == "NUM" and tok.nbor().dep_ == "pobj":
-                value += tok.text
+                # print("############################")
+                # print(file)
+
+                # check if the text contains more than just the number
+                text = tok.text
+                if "~" in text:
+                    text = text[1:]
+                if "–" in text:
+                    text = text.split("–")[0]
+                if "e" in text:
+                    text = text.split("e")[0]
+                number = float(text)
+                value += str(number)
 
         # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
         if pol not in article_data:
@@ -86,7 +98,7 @@ def extract_text(directory):
         print(doc[start:end])
 
         # call the highlight function to highlight the pattern in the text
-        highlight_match(span.text)
+        highlight_match(span.sent.text)
 
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
@@ -131,7 +143,9 @@ def extract_text(directory):
                                     article_data["DOI"] = word
                             break
 
-            doc = nlp(page.get_text())
+            # now we need to fit each page into a single line, because PyMuPdf has some problems with newlines and words that are split between lines
+            page_as_line = squish_page(page.get_text().splitlines())
+            doc = nlp(page_as_line)
 
             # testing ground
             """
@@ -150,7 +164,6 @@ def extract_text(directory):
         else:
             total_data.append(article_data)
         pdf.close()
-        break
 
     # export the extracted data to a csv file
     df = pd.DataFrame(total_data)
@@ -170,6 +183,23 @@ def extract_text(directory):
     # for data in total_data:
     #     print(data)
     print(not_found)
+
+
+def squish_page(lines):
+    """
+    This function converts a page into a single line of text
+    :param lines: the lines of the page as a list
+    :return: the text of the page in a single line
+    """
+
+    page_text = ""
+    for line in lines:
+        line = line.strip()
+        if line[-1:] == "-":
+            page_text += line[:-1]
+        else:
+            page_text += line + " "
+    return page_text
 
 
 if __name__ == "__main__":
