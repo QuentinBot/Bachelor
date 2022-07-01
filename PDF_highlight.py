@@ -53,16 +53,15 @@ def extract_text(directory):
                 if "e" in text:
                     text = text.split("e")[0]
                 number = float(text)
-                value += str(number)
+                value = str(number)
                 if down:
                     value = "-" + value
-                print("got pollutant " + pol + ", with value " + value)
+
                 # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
                 if pol not in article_data:
                     article_data[pol] = [value]
                 elif value not in article_data[pol]:
                     article_data[pol].append(value)
-                value = ""
 
         # call the highlight function to highlight the pattern in the text
         highlight_match(span.sent.text)
@@ -108,6 +107,49 @@ def extract_text(directory):
                 return
 
         find_value(span)
+
+    def no_pollutant_match(matcher, doc, i, matches):
+        """
+        This function gets called once the no_poll_matcher found his pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
+
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        # get the previous sentence to find the pollutant
+        prev_sent = ""
+        first_token = span[0]
+        index = first_token.i
+        for k in reversed(range(index)):
+            token = doc[k]
+            if token.is_sent_end:
+                prev_sent = token.sent
+                break
+
+        # check if there was a pollutant in the previous sentence
+        pol = get_pollutant(prev_sent)
+        if pol == "":
+            return
+        # and get the values for the pollutant in the current sentence
+        values = get_values(span)
+        # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
+        if pol not in article_data:
+            article_data[pol] = values
+        else:
+            for value in values:
+                if value not in article_data[pol]:
+                    article_data[pol].append(value)
+
+        # call the highlight function to highlight the pattern in the text
+        highlight_match(span.sent.text)
 
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
@@ -159,17 +201,21 @@ def extract_text(directory):
             # testing ground
             """
             for tok in doc:
-                if tok.text == "showed" and tok.nbor().text == "smaller":
+                if tok.text == "was" and tok.nbor().text == "observed":
+                    lefts = tok.lefts
+                    for l in lefts:
+                        print(l)
                     for token in tok.sent:
-                        print(token.text + ": " + token.pos_ + " " + token.dep_)
+                        print(token.text + ": " + token.pos_ + " " + token.dep_ + " " + token.lemma_)
             """
 
             # this is the pattern which we are looking for
             pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
-            long_pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}, {"TEXT": {"IN": [",", "and"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}, {"TEXT": {"IN": [",", "and"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}]
+            long_pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}, {"TEXT": {"IN": [",", "and"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}, {"TEXT": {"IN": [",", "and"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
             two_pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "and"}, {"POS": "NUM"}, {"TEXT": "%"}]
+            no_pollutant_pattern = [{"POS": "NUM"}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": "concentration"}, {"LEMMA": "be"}, {"LEMMA": "record"}, {"TEXT": ","}, {"TEXT": "while"}, {"TEXT": "a"}, {"POS": "NUM"}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"LEMMA": "be"}, {"LEMMA": "observe"}, {"TEXT": "at"}, {"TEXT": "the"}, {"OP": "?"}, {"TEXT": "site"}]
             matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
-
+            matcher.add("no_poll_matcher", [no_pollutant_pattern], on_match=no_pollutant_match)
             matches = matcher(doc)
 
         if not link_found:
@@ -177,6 +223,7 @@ def extract_text(directory):
         else:
             total_data.append(article_data)
         pdf.close()
+        # break
 
     # export the extracted data to a csv file
     df = pd.DataFrame(total_data)
@@ -214,6 +261,51 @@ def squish_page(page):
         else:
             page_text += line + " "
     return page_text
+
+
+def get_pollutant(sent):
+    """
+    This function searches a sentence for a pollutant
+    :param sent: the sentence that should be searched
+    :return: the pollutant, or an empty string if none was found
+    """
+    for tok in sent:
+        if tok.text in pollutants_no_number:
+            return tok.text
+    return ""
+
+
+def get_values(sent):
+    """
+    This function searches a sentence for values corresponding to pollutants
+    :param sent: the sentence that should be searched
+    :return: a list of values for the pollutant
+    """
+
+    values = []
+    down = True
+    for tok in sent:
+        # print(tok.text + " --> " + tok.pos_ + " -> " + tok.dep_)
+        if tok.lemma_ in negative:
+            down = True
+        elif tok.lemma_ in positive:
+            down = False
+        # add the actual numerical value of the pollutant
+        elif tok.pos_ == "NUM" and tok.nbor().text == "%":
+            # check if the text contains more than just the number
+            text = tok.text
+            if "~" in text:
+                text = text[1:]
+            if "–" in text:
+                text = text.split("–")[0]
+            if "e" in text:
+                text = text.split("e")[0]
+            number = float(text)
+            current_value = str(number)
+            if down:
+                current_value = "-" + current_value
+            values.append(current_value)
+    return values
 
 
 if __name__ == "__main__":
