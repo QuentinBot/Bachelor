@@ -144,7 +144,7 @@ def extract_text(directory):
                             break
 
             # now we need to fit each page into a single line, because PyMuPdf has some problems with newlines and words that are split between lines
-            page_as_line = squish_page(page.get_text().splitlines())
+            page_as_line = squish_page(page)
             doc = nlp(page_as_line)
 
             # testing ground
@@ -155,6 +155,7 @@ def extract_text(directory):
                         print(token.text + ": " + token.pos_ + " " + token.dep_)
             """
 
+            # this is the pattern which we are looking for
             pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
             matcher.add("firstMatcher", [pattern], on_match=basic_pattern_match)
             matches = matcher(doc)
@@ -170,6 +171,7 @@ def extract_text(directory):
     df.to_csv(r"./extracted_data.csv", index=False)
     print(df)
 
+    # this is for listing which DOI was not found
     not_found = []
     training_data = pd.read_csv("./training_data.csv", sep=";")
     for data in total_data:
@@ -185,13 +187,13 @@ def extract_text(directory):
     print(not_found)
 
 
-def squish_page(lines):
+def squish_page(page):
     """
     This function converts a page into a single line of text
-    :param lines: the lines of the page as a list
+    :param page: the page object that is currently processed
     :return: the text of the page in a single line
     """
-
+    lines = page.get_text().splitlines()
     page_text = ""
     for line in lines:
         line = line.strip()
