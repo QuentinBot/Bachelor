@@ -100,6 +100,53 @@ def extract_text(directory):
         # call the highlight function to highlight the pattern in the text
         highlight_match(span.sent.text)
 
+    def long_pattern_match(matcher, doc, i, matches):
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+        print("########## found #########")
+        print(span)
+
+        value = pol = ""
+        up = False
+        down = True
+        for tok in span:
+            # print(tok.text + " --> " + tok.pos_ + " -> " + tok.dep_)
+            if tok.text in pollutants_no_number:
+                pol = tok.text
+            # check if the trend is negative or positive
+            elif tok.lemma_ in negative:
+                down = True
+                up = False
+            elif tok.lemma_ in positive:
+                up = True
+                down = False
+            # add the actual numerical value of the pollutant
+            elif tok.pos_ == "NUM" and tok.nbor().text == "%":
+                # print("############################")
+                # print(file)
+
+                # check if the text contains more than just the number
+                text = tok.text
+                if "~" in text:
+                    text = text[1:]
+                if "–" in text:
+                    text = text.split("–")[0]
+                if "e" in text:
+                    text = text.split("e")[0]
+                number = float(text)
+                value += str(number)
+                if down:
+                    value = "-" + value
+                print("got pollutant " + pol + ", with value " + value)
+                # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
+                if pol not in article_data:
+                    article_data[pol] = [value]
+                elif value not in article_data[pol]:
+                    article_data[pol].append(value)
+                value = ""
+
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
 
@@ -157,7 +204,9 @@ def extract_text(directory):
 
             # this is the pattern which we are looking for
             pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}]
+            long_pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at"}, {"TEXT": "the"}, {"OP": "?"}, {"TEXT": "site"}, {"TEXT": ","}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at"}, {"TEXT": "the"}, {"OP": "?"}, {"TEXT": "site"}, {"TEXT": "and"}, {"POS": "NUM"}, {"TEXT": "%"}, {"TEXT": "at"}, {"TEXT": "the"}, {"OP": "?"}, {"TEXT": "site"}]
             matcher.add("firstMatcher", [pattern], on_match=basic_pattern_match)
+            matcher.add("longMatcher", [long_pattern], on_match=long_pattern_match)
             matches = matcher(doc)
 
         if not link_found:
@@ -165,6 +214,7 @@ def extract_text(directory):
         else:
             total_data.append(article_data)
         pdf.close()
+        break
 
     # export the extracted data to a csv file
     df = pd.DataFrame(total_data)
