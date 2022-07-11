@@ -206,11 +206,13 @@ def extract_text(directory):
     pol_after_number_pattern = [{"TEXT": "lockdown"}, {"TEXT": "emission"}, {"LEMMA": {"IN": trend}}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}]
     second_basic_pattern = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}]
     multi_pattern = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "for"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
+    second_multi_pattern = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": "the"}, {"TEXT": "concentration"}, {"TEXT": "of"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
+    two_pattern_reverse = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"LEMMA": "be"}, {"TEXT": "found"}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
 
     matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
     matcher.add("no_poll_matcher", [no_pollutant_pattern], on_match=no_pollutant_match)
     matcher.add("bracket_matcher", [bracket_pattern, pol_after_number_pattern, second_basic_pattern], on_match=bracket_matcher)
-    matcher.add("multi_matcher", [multi_pattern], on_match=multi_matcher)
+    matcher.add("multi_matcher", [multi_pattern, second_multi_pattern, two_pattern_reverse], on_match=multi_matcher)
 
     # this is where we will store all the extracted data
     total_data = []
@@ -259,9 +261,9 @@ def extract_text(directory):
             # testing ground
             """
             for tok in doc:
-                if tok.text == "overall" and tok.nbor().text == "average":
+                if tok.text == "Meanwhile" and tok.nbor().text == ",":
                     for t in tok.sent:
-                        print(t.text + " -> " + t.pos_ + " -> " + t.dep_)
+                        print(t.text + " -> " + t.pos_ + " -> " + t.dep_ + " -> " + t.lemma_)
             """
 
             matches = matcher(doc)
@@ -369,6 +371,11 @@ def get_values(sent):
             if down:
                 current_value = "-" + current_value
             values.append(current_value)
+
+    # we need to convert some negative numbers to positive because sometimes we find the number before the trend
+    if not down:
+        for j in range(len(values)):
+            values[j] = values[j].replace("-", "")
     return values
 
 
