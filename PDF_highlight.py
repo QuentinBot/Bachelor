@@ -9,7 +9,7 @@ import spacy
 import re
 
 
-pollutants_no_number = ["NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA", "PMPM", "NO2", "PM2.5", "PM10", "NOX", "O3", "SO2", "NH3", "NO3", "SO4"]
+pollutants_no_number = ["NOx", "NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA", "PMPM", "NO2", "PM2.5", "PM10", "NOX", "O3", "SO2", "NH3", "NO3", "SO4"]
 pollutants_numbers = ["2", "2.5", "10", "X", "3", "4"]
 
 negative = ["decrease", "reduce", "drop", "decline", "plummet", "reduction"]
@@ -173,18 +173,44 @@ def extract_text(directory):
         # call the highlight function to highlight the pattern in the text
         highlight_match(span.sent.text)
 
+    def multi_matcher(matcher, doc, i, matches):
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        # get the pollutants and values
+        pollutants = get_all_pollutants(span)
+        values = get_values(span)
+
+        # relate each pollutant to a value and add it to our current article data
+        for j in range(len(pollutants)):
+            current_pollutant = pollutants[j]
+            if current_pollutant not in article_data:
+                article_data[current_pollutant] = [values[j]]
+            else:
+                article_data[current_pollutant].append(values[j])
+
+        # call the highlight function to highlight the pattern in the text
+        highlight_match(span.sent.text)
+
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
 
-    # these are the patterns which we are looking for
+    # these are the patterns we are looking for
     pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     long_pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}, {"TEXT": {"IN": [",", "and"]}}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "the", "OP": "?"}, {"OP": "?"}, {"TEXT": "site", "OP": "?"}, {"TEXT": {"IN": [",", "and"]}}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     two_pattern = [{"TEXT": {"IN": pollutants_no_number}}, {'TEXT': {"IN": pollutants_numbers}, 'OP': "?"}, {"LEMMA": {"IN": ["average", "mean"]}, "OP": "?"}, {'LEMMA': {"IN": ["concentration", "emission"]}, 'OP': "?"}, {"LEMMA": {"IN": ["have", "be", "show"]}, "OP": "?"}, {"LEMMA": "small", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["by", "of"]}}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     no_pollutant_pattern = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": "concentration"}, {"LEMMA": "be"}, {"LEMMA": "record"}, {"TEXT": ","}, {"TEXT": "while"}, {"TEXT": "a"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"LEMMA": "be"}, {"LEMMA": "observe"}, {"TEXT": "at"}, {"TEXT": "the"}, {"OP": "?"}, {"TEXT": "site"}]
     bracket_pattern = [{"LEMMA": "concentration", "OP": "?"}, {"TEXT": "of", "OP": "?"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "markedly", "OP": "?"}, {"LEMMA": {"IN": trend}, "OP": "?"}, {"TEXT": "("},  {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%", "OP": "?"}]
+    pol_after_number_pattern = [{"TEXT": "lockdown"}, {"TEXT": "emission"}, {"LEMMA": {"IN": trend}}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}]
+    second_basic_pattern = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}]
+    multi_pattern = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "for"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
+
     matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
     matcher.add("no_poll_matcher", [no_pollutant_pattern], on_match=no_pollutant_match)
-    matcher.add("bracket_matcher", [bracket_pattern], on_match=bracket_matcher)
+    matcher.add("bracket_matcher", [bracket_pattern, pol_after_number_pattern, second_basic_pattern], on_match=bracket_matcher)
+    matcher.add("multi_matcher", [multi_pattern], on_match=multi_matcher)
 
     # this is where we will store all the extracted data
     total_data = []
@@ -233,7 +259,7 @@ def extract_text(directory):
             # testing ground
             """
             for tok in doc:
-                if tok.text == "markedly" and tok.nbor().text == "increased":
+                if tok.text == "overall" and tok.nbor().text == "average":
                     for t in tok.sent:
                         print(t.text + " -> " + t.pos_ + " -> " + t.dep_)
             """
@@ -297,6 +323,19 @@ def get_pollutant(sent):
     return ""
 
 
+def get_all_pollutants(sent):
+    """
+    This function searches a sentence for all occuring pollutants
+    :param sent: the sentence that should be searched
+    :return: the found pollutants
+    """
+    pollutants = []
+    for tok in sent:
+        if tok.text in pollutants_no_number:
+            pollutants.append(tok.text)
+    return pollutants
+
+
 def get_values(sent):
     """
     This function searches a sentence for values corresponding to pollutants
@@ -319,8 +358,12 @@ def get_values(sent):
                 text = text[1:]
             if "–" in text:
                 text = text.split("–")[0]
+            if "−" in text:
+                text = text.split("−")[0]
             if "e" in text:
                 text = text.split("e")[0]
+            if "%" in text:
+                text = text.split("%")[0]
             number = float(text)
             current_value = str(number)
             if down:
