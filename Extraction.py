@@ -135,9 +135,11 @@ def extract_text(directory):
                 break
 
         # check if there was a pollutant in the previous sentence
-        pol = get_pollutant(prev_sent)
-        if pol == "":
+        pols = get_all_pollutants(prev_sent)
+        if not pols:
             return
+        else:
+            pol = pols[-1]
         # and get the values for the pollutant in the current sentence
         values = get_values(span)
         # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
@@ -188,7 +190,7 @@ def extract_text(directory):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
                 article_data[current_pollutant] = [values[j]]
-            else:
+            elif values[j] not in article_data[current_pollutant]:
                 article_data[current_pollutant].append(values[j])
 
         # call the highlight function to highlight the pattern in the text
@@ -209,14 +211,22 @@ def extract_text(directory):
     second_multi_pattern = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": "the"}, {"TEXT": "concentration"}, {"TEXT": "of"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
     two_pattern_reverse = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"LEMMA": "be"}, {"TEXT": "found"}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
     # decreases in NO2 levels in San Francisco and Bakersfield of about 20%
-    long_pattern_2 = [{"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "levels"}, {"TEXT": "in", "OP": "?"}, {"TEXT": "San", "OP": "?"}, {"TEXT": "Francisco", "OP": "?"}, {"TEXT": "and", "OP": "?"}, {"TEXT": "Bakersfield", "OP": "?"}, {"TEXT": "of"}, {"TEXT": "about", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
+    long_pattern_2 = [{"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["of", "in"]}}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "levels", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"TEXT": "San", "OP": "?"}, {"TEXT": "Francisco", "OP": "?"}, {"TEXT": "and", "OP": "?"}, {"TEXT": "Bakersfield", "OP": "?"}, {"TEXT": {"IN": ["of", "by"]}}, {"TEXT": "about", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}]
     # reductions in tropospheric NO2 columns of approximately 40%, 38%, and 20%
     pattern_a = [{"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": "tropospheric", "OP": "?"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "columns", "OP": "?"}, {"TEXT": "of"}, {"TEXT": "approximately", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
+    # Beijing (31%), Hebei (22%), Shanghai (20%), Shandong (24%), and Hubei (32%), where the NO2 concentrations decrease
+    pattern_b = [{"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"TEXT": {"IN": ["and", "where"]}}, {"TEXT": {"IN": ["the", "their"]}}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration"}, {"LEMMA": {"IN": trend}}]
+    # decrease ratio over 20% including Tianjin (20%), Hebei (29%), Shanxi (24%), Shanghai (21%), Jiangsu (31%), Zhejiang (22%), Anhui (30%), Shandong (29%), Henan (33%), Hubei (23%), Shaanxi (22%), and Qinghai (22%)
+    pattern_c = [{"LEMMA": {"IN": trend}}, {"TEXT": "ratio", "OP": "?"}, {"TEXT": "over", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "including"}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"TEXT": "and"}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}]
+    # decrease of PM2.5 concentration (DR < 5%) is observed in Jiangxi (5%), Guangdong (4%), Guangxi (0%), Chongqing (5%), and
+    pattern_d = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "DR", "OP": "?"}, {"TEXT": "<", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"LEMMA": "be", "OP": "?"}, {"LEMMA": "observe", "OP": "?"}, {"TEXT": {"IN": ["in", "including"]}}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}, {"TEXT": ","}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"POS": "PROPN"}, {"TEXT": "("}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}]
+    # increase of PM10 concentration by 3% and 8%
+    pattern_e = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration"}, {"TEXT": "by"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}]
 
     matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
-    matcher.add("no_poll_matcher", [no_pollutant_pattern], on_match=no_pollutant_match)
-    matcher.add("bracket_matcher", [bracket_pattern, pol_after_number_pattern, second_basic_pattern, pattern_a], on_match=bracket_matcher)
-    matcher.add("multi_matcher", [multi_pattern, second_multi_pattern, two_pattern_reverse, long_pattern_2], on_match=multi_matcher)
+    matcher.add("no_poll_matcher", [no_pollutant_pattern, pattern_c], on_match=no_pollutant_match)
+    matcher.add("bracket_matcher", [bracket_pattern, pol_after_number_pattern, second_basic_pattern, pattern_a, pattern_b, long_pattern_2, pattern_d, pattern_e], on_match=bracket_matcher)
+    matcher.add("multi_matcher", [multi_pattern, second_multi_pattern, two_pattern_reverse], on_match=multi_matcher)
 
     # this is where we will store all the extracted data
     total_data = []
@@ -265,7 +275,7 @@ def extract_text(directory):
             # testing ground
             """
             for tok in doc:
-                if tok.text == "Meanwhile" and tok.nbor().text == ",":
+                if tok.text == "including" and tok.nbor().text == "Beijing":
                     for t in tok.sent:
                         print(t.text + " -> " + t.pos_ + " -> " + t.dep_ + " -> " + t.lemma_)
             """
@@ -374,7 +384,8 @@ def get_values(sent):
             current_value = str(number)
             if down:
                 current_value = "-" + current_value
-            values.append(current_value)
+            if current_value not in values:
+                values.append(current_value)
 
     # we need to convert some negative numbers to positive because sometimes we find the number before the trend
     if not down:
