@@ -230,8 +230,10 @@ def extract_text(directory):
         values = get_values(span)
         double = False
         # print("called multimatcher")
+        if 2*len(pollutants) == len(values):
+            double = True
         # ignore if not same amount of pollutants and values
-        if len(pollutants) != len(values):
+        elif len(pollutants) != len(values):
             return
 
         # print("##############")
@@ -239,8 +241,7 @@ def extract_text(directory):
         # print(pollutants)
         # print(values)
         # relate each pollutant to a value and add it to our current article data
-        if 2*len(pollutants) == len(values):
-            double = True
+
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -343,6 +344,25 @@ def extract_text(directory):
         # call the highlight function to highlight the pattern in the text
         highlight_match(span.sent.text)
 
+    def no_percentage_multi_matcher(matcher, doc, i, matches):
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        pollutants = get_all_pollutants(span)
+        values = get_all_values(span)
+
+        if len(pollutants) != len(values):
+            return
+
+        for j in range(len(pollutants)):
+            current_pollutant = pollutants[j]
+            if current_pollutant not in article_data:
+                article_data[current_pollutant] = [values[j]]
+            elif values[j] not in article_data[current_pollutant]:
+                article_data[current_pollutant].append(values[j])
+
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
 
@@ -390,7 +410,7 @@ def extract_text(directory):
     pattern_3 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": "the"}, {"TEXT": "daily"}, {"TEXT": "delta"}, {"LEMMA": "be"}, {"LEMMA": {"IN": trend}}, {"TEXT": "for"}, {"TEXT": "all"}, {"TEXT": "countries"}, {"TEXT": ","}, {"TEXT": "ranging"}, {"TEXT": "from"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "("}, {"TEXT": "urban"}, {"TEXT": ")"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "("}, {"TEXT": "rural"}, {"TEXT": ")"}, {"TEXT": "for"}, {"TEXT": "the"}, {"TEXT": "lowest"}, {"TEXT": "delta"}, {"TEXT": "in"}, {"POS": "PROPN"}, {"TEXT": "to"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "("}, {"TEXT": "urban"}, {"TEXT": ")"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
 
     # #### MULTI PATTERNS #### #
-    multi_pattern = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "for"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
+    multi_pattern = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": ["in", "for"]}}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
     second_multi_pattern = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": "the"}, {"TEXT": "concentration"}, {"TEXT": "of"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
     two_pattern_reverse = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"LEMMA": "be"}, {"TEXT": "found"}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
     # REDUCTION was estimated for BC and NO2 (−45 to −51%)
@@ -404,7 +424,7 @@ def extract_text(directory):
     # PM2.5, PM10, SO2, NO2 and CO in 2020 decrease by 14%, 15%, 12%, 16% and 12%
     pattern_p = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "in"}, {"TEXT": "2020"}, {"LEMMA": {"IN": trend}}, {"TEXT": "by"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     # SO2, NOx, PM2.5 and VOCs have been reduced by 26%, 47%, 46% and 57%
-    pattern_r = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "have"}, {"LEMMA": "be"}, {"LEMMA": {"IN": trend}}, {"TEXT": "by"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
+    pattern_r = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "’s", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "BTEX", "OP": "?"}, {"TEXT": ")"}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "have", "OP": "?"}, {"LEMMA": "be", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": {"IN": ["to", "by"]}}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     # PM2.5, PM10, SO2, CO, and NO2 were 46.1 μg m–3, 50.8 μg m–3, 2.56 ppb, 0.60 ppm, and 6.70 ppb and were 30.1%, 40.5%, 33.4%, 27.9%, and 61.4%, respectively, lower
     pattern_s = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "be"}, {"TEXT": {"REGEX": number_regex}}, {"POS": "ADP"}, {"POS": "ADJ"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"POS": "ADP"}, {"POS": "ADJ"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"POS": "NOUN"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"POS": "NOUN"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"POS": "NOUN"}, {"TEXT": "and"}, {"LEMMA": "be"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "respectively"}, {"TEXT": ","}, {"LEMMA": {"IN": trend}}]
     # NO2, SO2, and CO decreased by 45%, 47%, and 20%
@@ -414,7 +434,7 @@ def extract_text(directory):
     # reduction of PM2.5, PM10 and NO2 were 40%, 32% and 13%
     pattern_y = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "be"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     # PM10 and PM2.5 have reduced by about −51.84% and −53.11%
-    pattern_1 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "have"}, {"LEMMA": {"IN": trend}}, {"TEXT": "by"}, {"TEXT": "about"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
+    pattern_1 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"LEMMA": {"IN": ["be", "have"]}}, {"LEMMA": "observe", "OP": "?"}, {"TEXT": "to", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": "signiﬁcantly", "OP": "?"}, {"TEXT": "by"}, {"TEXT": "about", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
 
     # #### PLUS - MINUS PATTERNS #### #
     # PM2.5 and NO2 in northern China have decreased by approximately (29 ± 22%) and (53 ± 10%)
@@ -440,14 +460,23 @@ def extract_text(directory):
     # NO2 (–68%)
     pattern_2 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "("}, {"TEXT": "–"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ")"}]
 
+    # #### DOUBLE MULTI PATTERNS #### #
+    # PM10, PM2:5, NO2 and SO2 reduced by 55%, 49%, 60% and 19%, and 44%, 37%, 78% and 39%
+    pattern_5 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "have", "OP": "?"}, {"LEMMA": "be", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": "by"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
+
+    # #### NO PERCENTAGE MULTI PATTERNS #### #
+    # 43, 31, 10, and 18% decreases in PM2.5, PM10, CO, and NO2
+    pattern_6 = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
+
     matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
     matcher.add("no_poll_matcher", [no_pollutant_pattern, pattern_c, pattern_l], on_match=no_pollutant_match)
     matcher.add("bracket_matcher", [pattern_3, pol_after_number_pattern, second_basic_pattern, pattern_a, pattern_b, long_pattern_2, pattern_d, pattern_e, pattern_f, pattern_m, pattern_t, pattern_v], on_match=bracket_matcher)
-    matcher.add("multi_matcher", [pattern_1, multi_pattern, second_multi_pattern, two_pattern_reverse, pattern_i, pattern_j, pattern_o, pattern_g, pattern_p, pattern_r, pattern_s, pattern_u, pattern_w, pattern_x, pattern_y], on_match=multi_matcher)
+    matcher.add("multi_matcher", [pattern_5, pattern_1, multi_pattern, second_multi_pattern, two_pattern_reverse, pattern_i, pattern_j, pattern_o, pattern_g, pattern_p, pattern_r, pattern_s, pattern_u, pattern_w, pattern_x, pattern_y], on_match=multi_matcher)
     matcher.add("plus_minus_matcher", [pattern_h], on_match=plus_minus_matcher)
     matcher.add("long_no_trend_matcher", [pattern_k], on_match=no_trend_matcher)
     matcher.add("no_pollutant_no_trend", [pattern_n, pattern_4], on_match=no_pollutant_no_trend)
     matcher.add("trend_number_matcher", [pattern_q, pattern_z, pattern_2], on_match=bracket_matcher)
+    matcher.add("no_percentage_multi_matcher", [pattern_6], on_match=no_percentage_multi_matcher)
 
     # EASTASIA FOR TABLES and europe, europe2!
     # pattern_f hits "PM2.5, 47.9%", might need to fix
@@ -499,7 +528,7 @@ def extract_text(directory):
             # testing ground
 
             # for tok in doc:
-            #     if tok.text == "lowest" and tok.nbor().text == "delta":
+            #     if tok.text == "NH3" and tok.nbor().text == "were":
             #         for t in tok.sent:
             #             print(t.text + " -> " + t.pos_ + " -> " + t.dep_ + " -> " + t.lemma_)
 
@@ -703,6 +732,25 @@ def get_no_trend_values(sent):
             except ValueError:
                 number = "-" + str(float(tok.text[1:]))
             values.append(str(number))
+    return values
+
+
+def get_all_values(sent):
+    values = []
+    down = True
+    for tok in sent:
+        if tok.lemma_ in positive:
+            down = False
+        if tok.text not in pollutants_no_number and re.search(number_regex, tok.text):
+            try:
+                number = float(tok.text)
+            except ValueError:
+                number = tok.text
+            number = "-" + str(number)
+            values.append(number)
+    if not down:
+        for j in range(len(values)):
+            values[j] = values[j].replace("-", "")
     return values
 
 
