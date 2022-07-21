@@ -9,8 +9,30 @@ import spacy
 import re
 
 
-pollutants_no_number = ["S56VOCs", "WSIs", "nitrate", "EC", "OC", "CO2", "benzene", "BLSO2", "AQIPM2.5", "AQINO2", "ozone", "PM2:5", "NO₂", "NOx", "NO", "PM", "BC", "CO", "O", "SO", "NH", "NMVOCS", "VOCs", "VOC", "VOCS", "AOD", "AQI", "BCFF", "BCWB", "OM", "BBOA", "HOA", "OOA", "PMPM", "NO2", "PM2.5", "PM10", "NOX", "O3", "SO2", "NH3", "NO3", "SO4"]
+no2_list = ["NO2", "AQINO2", "NO₂"]
+nox_list = ["NOx", "NOX"]
+co_list = ["CO"]
+pm25_list = ["AQIPM2.5", "PM2:5", "PM2.5", "PM25"]
+pm10_list = ["PM10"]
+o3_list = ["ozone", "O3"]
+so2_list = ["SO2", "BLSO2"]
+nh3_list = ["NH3"]
+nmvocs_list = ["S56VOCs", "NMVOCS", "VOCs", "VOC", "VOCS", "benzene"]
+aod_list = ["AOD"]
+bc_list = ["BC", "EC"]
+aqi_list = ["AQI"]
+bcff_list = ["BCFF"]
+bcwb_list =["BCWB"]
+no3_list = ["NO3", "nitrate"]
+so4_list = ["SO4"]
+om_list = ["OM"]
+pm1_list = ["PM1"]
+bboa_list = ["BBOA"]
+hoa_list = ["HOA"]
+ooa_list = ["OOA"]
+pollutants_no_number = ["OC", "CO2", "NO", "PM", "O", "SO", "NH"] + no2_list + nox_list + co_list + pm25_list + pm10_list + o3_list + so2_list + nh3_list + nmvocs_list + aod_list + bc_list + aqi_list + bcff_list + bcwb_list + no3_list + so4_list + om_list + pm1_list + bboa_list + hoa_list + ooa_list
 pollutants_numbers = ["2", "2.5", "10", "X", "3", "4"]
+actual_pollutants = ["NO2", "PM2.5", "PM10", "BC", "NOX", "CO", "O3", "SO2", "NH3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO3", "SO4", "OM", "BBOA", "HOA", "OOA", "PM1"]
 
 negative = ["decrease", "reduce", "drop", "decline", "plummet", "reduction", "lower", "-", "low", "negative", "improve", "enhancement", "halve", "diminish", "fall", "down"]
 positive = ["+", "increase", "positive", "rise"]
@@ -35,7 +57,7 @@ def extract_text(directory):
         for tok in span:
             # print(tok.text + " --> " + tok.pos_ + " -> " + tok.dep_)
             if tok.text in pollutants_no_number:
-                pol = tok.text
+                pol = fix_pollutant(tok.text)
             # check if the trend is negative or positive
             elif tok.lemma_ in negative or tok.text[0] == "-":
                 down = True
@@ -702,7 +724,7 @@ def get_pollutant(sent):
     """
     for tok in sent:
         if tok.text in pollutants_no_number:
-            return tok.text
+            return fix_pollutant(tok.text)
     return ""
 
 
@@ -715,7 +737,8 @@ def get_all_pollutants(sent):
     pollutants = []
     for tok in sent:
         if tok.text in pollutants_no_number:
-            pollutants.append(tok.text)
+            pol = fix_pollutant(tok.text)
+            pollutants.append(pol)
     return pollutants
 
 
@@ -867,6 +890,52 @@ def get_all_values(sent):
         for j in range(len(values)):
             values[j] = values[j].replace("-", "")
     return values
+
+
+def fix_pollutant(pollutant):
+    if pollutant in no2_list:
+        return "NO2"
+    if pollutant in nox_list:
+        return "NOX"
+    if pollutant in co_list:
+        return "CO"
+    if pollutant in pm25_list:
+        return "PM25"
+    if pollutant in pm10_list:
+        return "PM10"
+    if pollutant in o3_list:
+        return "O3"
+    if pollutant in so2_list:
+        return "SO2"
+    if pollutant in nh3_list:
+        return "NH3"
+    if pollutant in nmvocs_list:
+        return "NMVOCS"
+    if pollutant in aod_list:
+        return "AOD"
+    if pollutant in bc_list:
+        return "BC"
+    if pollutant in aqi_list:
+        return "AQI"
+    if pollutant in bcff_list:
+        return "BCFF"
+    if pollutant in bcwb_list:
+        return "BCWB"
+    if pollutant in no3_list:
+        return "NO3"
+    if pollutant in so4_list:
+        return "SO4"
+    if pollutant in om_list:
+        return "OM"
+    if pollutant in pm1_list:
+        return "PM1"
+    if pollutant in bboa_list:
+        return "BBOA"
+    if pollutant in hoa_list:
+        return "HOA"
+    if pollutant in ooa_list:
+        return "OOA"
+    return pollutant
 
 
 if __name__ == "__main__":

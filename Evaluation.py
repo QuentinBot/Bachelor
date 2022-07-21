@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 # function for converting back strings that used to be lists, for a better analysis
 def convert_to_list(data, columns):
     counter = 0
@@ -22,17 +23,18 @@ def convert_to_list(data, columns):
                 data[c][r] = list        
     return data, counter
 
+
 def main():
     # read in our training and extracted datasets
     training_data = pd.read_csv("./training_data.csv", sep=";")
     extracted_data = pd.read_csv("./extracted_data.csv")
 
     # rename the interesting columns
-    training_data.rename(columns = {"NO2_prcnt_change":"NO2", "NOX_prcnt_change":"NOX", "CO_prcnt_change":"CO", "PM25_prcnt_change":"PM2.5", "PM10_prcnt_change":"PM10", "O3_prcnt_change":"O3", "SO2_prcnt_change":"SO2", "NH3_prcnt_change":"NH3", "NMVOCS_prcnt_change":"NMVOCS", "AOD_prcnt_change":"AOD", "BC_prcnt_change":"BC", "AQI_prcnt_change":"AQI", "BCFF_prcnt_change":"BCFF", "BCWB_prcnt_change":"BCWB", "NO3_prcnt_change":"NO3", "SO4_prcnt_change":"SO4", "OM_prcnt_change":"OM", "PM1_prcnt_change":"PM1", "BBOA_prcnt_change":"BBOA", "HOA_prcnt_change":"HOA", "OOA_prcnt_change":"OOA"}, inplace = True)
+    training_data.rename(columns = {"NO2_prcnt_change":"NO2", "NOX_prcnt_change":"NOX", "CO_prcnt_change":"CO", "PM25_prcnt_change":"PM25", "PM10_prcnt_change":"PM10", "O3_prcnt_change":"O3", "SO2_prcnt_change":"SO2", "NH3_prcnt_change":"NH3", "NMVOCS_prcnt_change":"NMVOCS", "AOD_prcnt_change":"AOD", "BC_prcnt_change":"BC", "AQI_prcnt_change":"AQI", "BCFF_prcnt_change":"BCFF", "BCWB_prcnt_change":"BCWB", "NO3_prcnt_change":"NO3", "SO4_prcnt_change":"SO4", "OM_prcnt_change":"OM", "PM1_prcnt_change":"PM1", "BBOA_prcnt_change":"BBOA", "HOA_prcnt_change":"HOA", "OOA_prcnt_change":"OOA"}, inplace = True)
 
     # we currently only take a look at the percentages
     # interesting_columns = ["NO2_prcnt_change", "NOX_prcnt_change", "CO_prcnt_change", "PM25_prcnt_change", "PM10_prcnt_change", "O3_prcnt_change", "SO2_prcnt_change", "NH3_prcnt_change", "NMVOCS_prcnt_change", "AOD_prcnt_change", "BC_prcnt_change", "AQI_prcnt_change", "BCFF_prcnt_change", "BCWB_prcnt_change", "NO3_prcnt_change", "SO4_prcnt_change", "OM_prcnt_change", "PM1_prcnt_change", "BBOA_prcnt_change", "HOA_prcnt_change", "OOA_prcnt_change"]
-    pollutants = ["NO2", "PM2.5", "PM10", "BC", "NOX", "CO", "O3", "SO2", "NH3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO3", "SO4", "OM", "BBOA", "HOA", "OOA", "PM1"]
+    pollutants = ["NO2", "PM25", "PM10", "BC", "NOX", "CO", "O3", "SO2", "NH3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO3", "SO4", "OM", "BBOA", "HOA", "OOA", "PM1"]
     # a list for the actually needed pollutants present in the extracted dataset
     needed_pollutants = []
     for p in pollutants:
@@ -46,7 +48,6 @@ def main():
             if not pd.isna(training_data[column][i]):
                 total_amount += 1
 
-    
     # convert long string back to lists in the extracted data, also return amount of extracted data
     extracted_data, extracted_counter = convert_to_list(extracted_data, needed_pollutants)
 
