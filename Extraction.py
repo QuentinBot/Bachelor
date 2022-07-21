@@ -1,7 +1,5 @@
 import fitz
-import sys
 import os
-from pprint import pprint
 from io import BytesIO
 import pandas as pd
 from spacy.matcher import Matcher
