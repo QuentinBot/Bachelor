@@ -5,6 +5,7 @@ import pandas as pd
 from spacy.matcher import Matcher
 import spacy
 import re
+import tabula
 
 
 no2_list = ["NO2", "AQINO2", "NO₂"]
@@ -455,6 +456,99 @@ def extract_text(directory):
         # call the highlight function to highlight the pattern in the text
         highlight_match(span.sent.text)
 
+    def table_finder(matcher, doc, i, matches):
+        if pg+1 in pages:
+            return
+
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        pollutant = get_pollutant(span)
+        print(pollutant)
+
+        df = tabula.read_pdf(directory + file, pages=pg+1)
+        for d in df:
+            values = []
+            print("##########################")
+            interesting_row = -1
+            for idx, row in d.iloc[:, :1].iterrows():
+                if "percent change" in str(row[0]).lower():
+                    interesting_row = idx
+            if interesting_row != -1:
+                for v in d.iloc[interesting_row]:
+                    try:
+                        neg = False
+                        v = str(v)
+                        if v == "nan":
+                            continue
+                        if v[0] in ["-", "−"]:
+                            v = v[1:]
+                            neg = True
+                        v = float(v)
+                        if neg:
+                            v = "-" + str(v)
+                        values.append(v)
+                    except ValueError:
+                        print(str(v) + " not a value")
+                if pollutant not in article_data:
+                    article_data[pollutant] = values
+                else:
+                    for v in values:
+                        if v not in article_data[pollutant]:
+                            article_data[pollutant].append(v)
+
+                highlight_match(span.sent.text)
+
+        pages.append(pg+1)
+
+    def different_pol_table(matcher, doc, i, matches):
+        if pg+1 in pages:
+            return
+
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        df = tabula.read_pdf(directory + file, pages=pg+1)
+        for d in df:
+            print("########################")
+            current_pol = "NO POLLUTANT"
+            for name, values_table in d.iteritems():
+                current_name = fix_pollutant(name.replace("Country ", ""))
+                if current_name in pollutants_no_number:
+                    current_pol = current_name
+                print(current_pol)
+                values = []
+                for v in values_table:
+                    v = str(v)
+                    v = v.split()[-1]
+                    try:
+                        neg = False
+                        v = str(v)
+                        if v == "nan":
+                            continue
+                        if v[0] in ["-", "−"]:
+                            v = v[1:]
+                            neg = True
+                        v = float(v)
+                        if neg:
+                            v = "-" + str(v)
+                        values.append(v)
+                    except ValueError:
+                        print(str(v) + " not a value")
+                if current_pol not in article_data:
+                    article_data[current_pol] = values
+                else:
+                    for v in values:
+                        if v not in article_data[current_pol]:
+                            article_data[current_pol].append(v)
+
+        highlight_match(span.sent.text)
+        pages.append(pg+1)
+
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
 
@@ -511,7 +605,7 @@ def extract_text(directory):
     # PM10 remained basically unchanged (Fig. S2c), showing a 7.6% reduction
     pattern_13 = [{"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"POS": "NUM", "OP": "?"}, {"LEMMA": "remain", "OP": "?"}, {"TEXT": "basically", "OP": "?"}, {"TEXT": "unchanged", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "Fig", "OP": "?"}, {"TEXT": ".", "OP": "?"}, {"TEXT": {"REGEX": "S[1-9]c"}, "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"LEMMA": "be", "OP": "?"}, {"POS": "NUM", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "which", "OP": "?"}, {"LEMMA": {"IN": ["be", "show"]}}, {"TEXT": "a", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "(", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "/", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": "and", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"LEMMA": {"IN": trend}}]
     # O3 increase (Fig. S5b), averaging 14.7% at SB and 8% at
-    pattern_14 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "in", "OP": "?"}, {"TEXT": "PL", "OP": "?"}, {"LEMMA": "have", "OP": "?"}, {"TEXT": "a", "OP": "?"}, {"TEXT": "substantial", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": "(", "OP": "?"}, {"TEXT": "Fig", "OP": "?"}, {"TEXT": ".", "OP": "?"}, {"TEXT": {"REGEX": "S[1-9]b"}, "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"LEMMA": "range", "OP": "?"}, {"TEXT": {"IN": ["by", "averaging", "of", "between", "before"]}}, {"TEXT": "(", "OP": "?"}, {"TEXT": "–", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "at", "OP": "?"}, {"TEXT": "SB", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": "and"}, {"POS": "ADP", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "–", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "respectively", "OP": "!"}]
+    pattern_14 = [{"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"TEXT": "PL", "OP": "?"}, {"LEMMA": "have", "OP": "?"}, {"TEXT": "a", "OP": "?"}, {"TEXT": "substantial", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": "(", "OP": "?"}, {"TEXT": "Fig", "OP": "?"}, {"TEXT": ".", "OP": "?"}, {"TEXT": {"REGEX": "S[1-9]b"}, "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"LEMMA": "range", "OP": "?"}, {"TEXT": {"IN": ["by", "averaging", "of", "between", "before"]}}, {"TEXT": "(", "OP": "?"}, {"TEXT": "–", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": ["in", "at"]}, "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "SB", "OP": "?"}, {"TEXT": ")", "OP": "?"},{"TEXT": ",", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"POS": "ADP", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "–", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "respectively", "OP": "!"}]
 
     # #### MULTI PATTERNS #### #
     multi_pattern = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": ["in", "for"]}}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
@@ -594,9 +688,13 @@ def extract_text(directory):
     # drop in AQIPM2.5 of 45.25% and 64.65% and in AQINO2 of 37.42% and 65.80%
     pattern_10 = [{"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "of"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"},  {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "of"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
 
-    # #### TWO POLLUTANTS ONE VALUE #### #
+    # #### TWO POLLUTANTS ONE VALUE PATTERNS #### #
     # CO and NO2 fell at High Traffic sites by 50%
     pattern_20 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": {"IN": trend}}, {"TEXT": "at"}, {"LOWER": "high"}, {"POS": "PROPN"}, {"LEMMA": "site"}, {"TEXT": "by"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
+
+    # #### TABLE FINDING PATTERNS #### #
+    table_1 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"LEMMA": "calculate"}]
+    table_2 = [{"LOWER": "maximum"}, {"TEXT": "daily"}, {"TEXT": "delta"}, {"OP": "*"}, {"TEXT": "of"}, {"LEMMA": "concentration"}, {"TEXT": "("}, {"TEXT": "%"}, {"TEXT": ")"}]
 
     matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
     matcher.add("no_poll_matcher", [pattern_15, pattern_8, pattern_7, no_pollutant_pattern, pattern_c, pattern_l], on_match=no_pollutant_match)
@@ -610,6 +708,8 @@ def extract_text(directory):
     matcher.add("no_percentage_bracket_matcher", [pattern_23, pattern_11], on_match=no_percentage_bracket_matcher)
     matcher.add("two_in_one_matcher", [pattern_10], on_match=two_in_one_matcher)
     matcher.add("two_pol_one_value", [pattern_20], on_match=two_pol_one_value_matcher)
+    matcher.add("table_finder", [table_1], on_match=table_finder)
+    matcher.add("different_pol_table", [table_2], on_match=different_pol_table)
 
     # TODO
     # EASTASIA FOR TABLES and europe, europe2!
@@ -625,6 +725,11 @@ def extract_text(directory):
     for file in directories:
         # this is for storing the data of each file
         article_data = {}
+
+        # dataf = tabula.read_pdf(directory + file, pages="7")
+        # print(dataf)
+        # page counter to keep track of visited pages
+        pages = []
 
         pdf = fitz.open(directory+file)
         link_found = False
@@ -663,7 +768,7 @@ def extract_text(directory):
             # testing ground
 
             # for tok in doc:
-            #     if tok.text == "56.2" and tok.nbor().text == "%":
+            #     if tok.text == "Table" and tok.nbor().text == "3":
             #         for t in tok.sent:
             #             print(t.text + " -> " + t.pos_ + " -> " + t.dep_ + " -> " + t.lemma_)
 
