@@ -549,6 +549,51 @@ def extract_text(directory):
         highlight_match(span.sent.text)
         pages.append(pg+1)
 
+    def huge_layout_fail_table(matcher, doc, i, matches):
+        if pg+1 in pages:
+            return
+
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        df = tabula.read_pdf(directory + file, pages=pg+1)
+        for d in df:
+            print("########################")
+            current_pol = "NO POLLUTANT"
+            for name, values_table in d.iteritems():
+                values = []
+                for v in values_table:
+                    v = fix_pollutant(str(v))
+                    if v in pollutants_no_number:
+                        current_pol = v
+                        continue
+                    v = v.split()[0]
+                    try:
+                        neg = False
+                        if v == "nan":
+                            continue
+                        if v[0] in ["-", "−"]:
+                            v = v[1:]
+                            neg = True
+                        v = float(v)
+                        if neg:
+                            v = "-" + str(v)
+                        values.append(v)
+                    except ValueError:
+                        print(str(v) + " not a value")
+                if current_pol not in article_data:
+                    article_data[current_pol] = values
+                else:
+                    for v in values:
+                        if v not in article_data[current_pol]:
+                            article_data[current_pol].append(v)
+
+        highlight_match(span.sent.text)
+        pages.append(pg+1)
+
+
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
 
@@ -694,7 +739,8 @@ def extract_text(directory):
 
     # #### TABLE FINDING PATTERNS #### #
     table_1 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"LEMMA": "calculate"}]
-    table_2 = [{"LOWER": "maximum"}, {"TEXT": "daily"}, {"TEXT": "delta"}, {"OP": "*"}, {"TEXT": "of"}, {"LEMMA": "concentration"}, {"TEXT": "("}, {"TEXT": "%"}, {"TEXT": ")"}]
+    table_2 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"LOWER": "maximum"}, {"TEXT": "daily"}, {"TEXT": "delta"}, {"OP": "*"}, {"TEXT": "of"}, {"LEMMA": "concentration"}, {"TEXT": "("}, {"TEXT": "%"}, {"TEXT": ")"}]
+    table_3 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": "%"}, {"OP": "*"}, {"TEXT": "of"}, {"OP": "*"}, {"TEXT": "daily"}, {"TEXT": "maximum"}, {"TEXT": {"IN": pollutants_no_number}}]
 
     matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
     matcher.add("no_poll_matcher", [pattern_15, pattern_8, pattern_7, no_pollutant_pattern, pattern_c, pattern_l], on_match=no_pollutant_match)
@@ -710,6 +756,7 @@ def extract_text(directory):
     matcher.add("two_pol_one_value", [pattern_20], on_match=two_pol_one_value_matcher)
     matcher.add("table_finder", [table_1], on_match=table_finder)
     matcher.add("different_pol_table", [table_2], on_match=different_pol_table)
+    matcher.add("weird_layout", [table_3], on_match=huge_layout_fail_table)
 
     # TODO
     # EASTASIA FOR TABLES and europe, europe2!
@@ -726,8 +773,8 @@ def extract_text(directory):
         # this is for storing the data of each file
         article_data = {}
 
-        # dataf = tabula.read_pdf(directory + file, pages="7")
-        # print(dataf)
+        dataf = tabula.read_pdf(directory + file, pages="4")
+        print(dataf)
         # page counter to keep track of visited pages
         pages = []
 
