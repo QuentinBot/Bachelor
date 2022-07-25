@@ -1,9 +1,0 @@
-SELECT ?drugDesc ?cpd ?equation WHERE {
-    ?drug drugbank:drugCategory durgcategory:cathartics .
-    ?drug drugbank:keggCoumpoundId ?cpd .
-    ?drug drugbank:description ?drugDesc .
-    ?enzyme kegg:xSubstrate ?cpd .
-    ?enzyme rdf:type kegg:Enzyme .
-    ?reaction kegg:xEnzyme ?enzyme .
-    ?reaction kegg:equation ?equation .
-}

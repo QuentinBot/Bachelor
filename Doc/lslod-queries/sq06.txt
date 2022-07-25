@@ -1,5 +1,0 @@
-SELECT ?drug ?disease ?name WHERE {
-    ?drug drugbank:molecularWeightAverage ?weight .
-    ?drug drugbank:possibleDiseaseTarget ?disease .
-    ?disease diseasome:name ?name .
-}

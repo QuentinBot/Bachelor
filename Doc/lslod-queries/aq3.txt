@@ -1,6 +1,0 @@
-SELECT DISTINCT ?drugLabel ?ingredientLabel ?route WHERE {
-    ?drug dailymed:fullName ?drugLabel .
-    ?drug dailymed:routeOfAdministration ?route .
-    ?drug dailymed:activeIngredient ?ingredient .
-    ?ingredient rdfs:label ?ingredientLabel .
-}

@@ -1,5 +1,0 @@
-SELECT DISTINCT ?drug ?label ?loc WHERE {
-    ?drug drugbank:target ?target .
-    ?target rdfs:label ?label .
-    ?target drugbank:chromosomeLocation ?loc .
-}

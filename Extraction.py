@@ -593,7 +593,6 @@ def extract_text(directory):
         highlight_match(span.sent.text)
         pages.append(pg+1)
 
-
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
 
@@ -773,8 +772,8 @@ def extract_text(directory):
         # this is for storing the data of each file
         article_data = {}
 
-        dataf = tabula.read_pdf(directory + file, pages="4")
-        print(dataf)
+        # dataf = tabula.read_pdf(directory + file, pages="4")
+        # print(dataf)
         # page counter to keep track of visited pages
         pages = []
 

@@ -1,6 +1,0 @@
-SELECT ?drug ?sideeffect ?label WHERE {
-    ?drug dailymed:name 'Sodium Phosphates' .
-    ?drug owl:sameAs ?drugAlt .
-    ?drugAlt sider:sideEffect ?sideeffect .
-    ?sideeffect rdfs:label ?label .
-}
