@@ -48,72 +48,6 @@ def extract_text(directory):
     :return:
     """
 
-    def find_value(span):
-
-        pol = ""
-        up = False
-        down = True
-        for tok in span:
-            # print(tok.text + " --> " + tok.pos_ + " -> " + tok.dep_)
-            if tok.text in pollutants_no_number:
-                pol = fix_pollutant(tok.text)
-            # check if the trend is negative or positive
-            elif tok.lemma_ in negative or tok.text[0] == "-":
-                down = True
-            elif tok.lemma_ in positive or tok.text[0] == "+":
-                down = False
-            # add the actual numerical value of the pollutant
-            elif re.search(number_regex, tok.text) and tok.nbor().text == "%":
-                # print("############################")
-                # print(file)
-
-                # check if the text contains more than just the number
-                text = tok.text
-                if text[0] in ["−", "+", "~"]:
-                    text = text[1:]
-                if "%" in text:
-                    text = text.split("%")[0]
-                if "e" in text:
-                    text = text.split("e")[0]
-                if "~" in text:
-                    text = text.split("~")[0]
-                if "-" in text[1:]:
-                    v = text.split("-")
-                    try:
-                        text = str(round((float(v[0]) + float(v[1]))/2, 2))
-                    except ValueError:
-                        print(v)
-                        print("contains not only numbers")
-                        print(tok.sent)
-                        break
-                if "–" in text[1:]:
-                    v = text.split("–")
-                    try:
-                        text = str(round((float(v[0]) + float(v[1]))/2, 2))
-                    except ValueError:
-                        print(v)
-                        print("contains not only numbers")
-                        print(tok.sent)
-                        break
-                try:
-                    number = float(text)
-                except ValueError:
-                    print(tok.text + " is no number")
-                    print(tok.sent)
-                    break
-                value = str(number)
-                if down:
-                    value = "-" + value
-
-                # add the matched value to our current article data. If there is already a value stored for the pollutant, we will add it to the list
-                if pol not in article_data:
-                    article_data[pol] = [value]
-                elif value not in article_data[pol]:
-                    article_data[pol].append(value)
-
-        # call the highlight function to highlight the pattern in the text
-        highlight_match(span.sent.text)
-
     def highlight_match(text):
         """
         This function creates a new PDF file with the corresponding text passage highlighted
@@ -135,33 +69,6 @@ def extract_text(directory):
         pdf.save(output_buffer)
         with open("./highlighted/" + file + "_highlighted.pdf", mode="wb") as f:
             f.write(output_buffer.getbuffer())
-
-    def basic_pattern_match(matcher, doc, i, matches):
-        """
-        This function gets called once the firstMatcher found his pattern in the text.
-        It then processes the match and extracts the information regarding the pollutants.
-        :param matcher: the matcher which invoked this function
-        :param doc: the document on which it searched
-        :param i: the position of the current match
-        :param matches: the total list of matches
-        :return:
-        """
-        match_id, start, end = matches[i]
-
-        # this is the extracted passage in the text
-        span = doc[start:end]
-        # print("called basic matcher with " + span.text)
-
-        # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
-        span_previous = doc[start-3:start]
-        if len(span_previous) > 2:
-            if span_previous[2].text in ["and", ","]:
-                if span_previous[1].text in pollutants_no_number or span_previous[1].text in pollutants_numbers:
-                    return
-                if span_previous[1].text == "," and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
-                    return
-
-        find_value(span)
 
     def no_pollutant_match(matcher, doc, i, matches):
         """
@@ -225,6 +132,15 @@ def extract_text(directory):
         # this is the extracted passage in the text
         span = doc[start:end]
         # print("called bracket matcher with " + span.text)
+
+        # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
+        span_previous = doc[start-3:start]
+        if len(span_previous) > 2:
+            if span_previous[2].text in ["and", ","]:
+                if span_previous[1].text in pollutants_no_number or span_previous[1].text in pollutants_numbers:
+                    return
+                if span_previous[1].text == "," and span_previous[0].text in pollutants_no_number or span_previous[0].text in pollutants_numbers:
+                    return
 
         # get pollutant
         pol = get_pollutant(span)
@@ -741,9 +657,8 @@ def extract_text(directory):
     table_2 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"LOWER": "maximum"}, {"TEXT": "daily"}, {"TEXT": "delta"}, {"OP": "*"}, {"TEXT": "of"}, {"LEMMA": "concentration"}, {"TEXT": "("}, {"TEXT": "%"}, {"TEXT": ")"}]
     table_3 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": "%"}, {"OP": "*"}, {"TEXT": "of"}, {"OP": "*"}, {"TEXT": "daily"}, {"TEXT": "maximum"}, {"TEXT": {"IN": pollutants_no_number}}]
 
-    matcher.add("firstMatcher", [pattern, long_pattern, two_pattern], on_match=basic_pattern_match)
     matcher.add("no_poll_matcher", [pattern_15, pattern_8, pattern_7, no_pollutant_pattern, pattern_c, pattern_l], on_match=no_pollutant_match)
-    matcher.add("bracket_matcher", [pattern_22, pattern_14, pattern_13, pattern_12, pattern_9, pattern_3, pol_after_number_pattern, second_basic_pattern, pattern_a, pattern_b, long_pattern_2, pattern_d, pattern_e, pattern_f, pattern_m, pattern_t, pattern_v], on_match=bracket_matcher)
+    matcher.add("bracket_matcher", [pattern, long_pattern, two_pattern, pattern_22, pattern_14, pattern_13, pattern_12, pattern_9, pattern_3, pol_after_number_pattern, second_basic_pattern, pattern_a, pattern_b, long_pattern_2, pattern_d, pattern_e, pattern_f, pattern_m, pattern_t, pattern_v], on_match=bracket_matcher)
     matcher.add("multi_matcher", [pattern_21, pattern_19, pattern_17, pattern_16, pattern_5, pattern_1, multi_pattern, second_multi_pattern, two_pattern_reverse, pattern_i, pattern_j, pattern_o, pattern_g, pattern_p, pattern_r, pattern_s, pattern_u, pattern_w, pattern_x, pattern_y], on_match=multi_matcher)
     matcher.add("plus_minus_matcher", [pattern_h], on_match=plus_minus_matcher)
     matcher.add("long_no_trend_matcher", [pattern_k], on_match=no_trend_matcher)
