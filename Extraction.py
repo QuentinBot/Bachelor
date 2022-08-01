@@ -685,6 +685,10 @@ def extract_text(directory):
     directories = os.listdir(directory)
     directories.sort()
     for file in directories:
+
+        if file == "README":
+            continue
+        
         # this is for storing the data of each file
         article_data = {}
 
