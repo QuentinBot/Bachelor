@@ -172,11 +172,12 @@ def extract_text(directory):
         if 2*len(pollutants) == len(values):
             double = True
         # ignore if not same amount of pollutants and values
-        elif len(pollutants) != len(values):
+        elif len(pollutants) == 1 or len(pollutants) != len(values):
             return
 
         # print("##############")
-        # print(span.sent.text)
+        # print(span.text)
+        # print(matcher)
         # print(pollutants)
         # print(values)
         # relate each pollutant to a value and add it to our current article data
@@ -747,7 +748,8 @@ def extract_text(directory):
     df.to_csv(r"./extracted_data.csv", index=False)
     print(df)
 
-    # this is for listing which DOI was not found
+    # this is for listing which DOI was not found, for evaluation purposes
+    """
     not_found = []
     training_data = pd.read_csv("./training_data.csv", sep=";")
     for data in total_data:
@@ -761,6 +763,7 @@ def extract_text(directory):
     # for data in total_data:
     #     print(data)
     print(not_found)
+    """
 
 
 def squish_page(page):
