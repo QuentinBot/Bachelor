@@ -4,6 +4,13 @@ import pandas as pd
 
 # function for converting back strings that used to be lists, for a better analysis
 def convert_to_list(data, columns):
+    """
+    This function converts back strings that used to be lists.
+    For further analysis, working with lists is much easier than working with strings.
+    :param data: a panda dataframe containing the data as strings
+    :param columns: the column names of the data
+    :return: a tuple of the panda dataframe (now containing lists instead of strings), combined with the total number of extracted values 
+    """
     counter = 0
     for c in columns:
         for r in range(data.shape[0]):
