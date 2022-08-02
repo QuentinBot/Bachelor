@@ -72,7 +72,7 @@ def extract_text(directory):
 
     def no_pollutant_match(matcher, doc, i, matches):
         """
-        This function gets called once the no_poll_matcher found his pattern in the text.
+        This function gets called once the no_poll_matcher found its pattern in the text.
         It then processes the match and extracts the information regarding the pollutants.
         :param matcher: the matcher which invoked this function
         :param doc: the document on which it searched
@@ -127,6 +127,15 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def bracket_matcher(matcher, doc, i, matches):
+        """
+        This function gets called once the bracket_matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
@@ -159,6 +168,15 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def multi_matcher(matcher, doc, i, matches):
+        """
+        This function gets called once the multi_matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
@@ -182,6 +200,7 @@ def extract_text(directory):
         # print(values)
         # relate each pollutant to a value and add it to our current article data
 
+        # relate each pollutant to its values
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -196,15 +215,25 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def plus_minus_matcher(matcher, doc, i, matches):
+        """
+        This function get called once the plus_minus_matcher finds its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
         span = doc[start:end]
 
-        # get pollutant
+        # get pollutants and values
         pollutants = get_all_pollutants(span)
         values = get_plus_minus_values(span)
 
+        # relate each pollutant to its value
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -216,17 +245,30 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def no_trend_matcher(matcher, doc, i, matches):
+        """
+        This function gets called once the long_no_trend_matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # get pollutants and values
         pollutants = get_all_pollutants(span)
         values = get_no_trend_values(span)
         double = False
 
+        # check if there are two values for one pollutant
         if 2*len(pollutants) == len(values):
             double = True
+
+        # relate each pollutant to its values
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -241,6 +283,15 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def no_pollutant_no_trend(matcher, doc, i, matches):
+        """
+        This function gets called once the no_pollutant_no_trend matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
@@ -272,8 +323,13 @@ def extract_text(directory):
             pols = get_all_pollutants(prev_sent)
             if not pols:
                 return
+
+        # pollutant is the last found pollutant
         pol = pols[-1]
+        # get the values
         values = get_no_trend_values(span)
+
+        # relate the pollutant to its values
         if pol not in article_data:
             article_data[pol] = values
         else:
@@ -285,17 +341,29 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def no_percentage_multi_matcher(matcher, doc, i, matches):
+        """
+        This function gets called once the no_percentage_multi_matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # get pollutants and values
         pollutants = get_all_pollutants(span)
         values = get_all_values(span)
 
+        # check if valid multi pattern
         if len(pollutants) != len(values):
             return
 
+        # relate each pollutant to its value
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -307,14 +375,25 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def no_percentage_bracket_matcher(matcher, doc, i, matches):
+        """
+        This function gets called once the no_percentage_bracket_matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # get pollutant and values
         pol = get_pollutant(span)
         values = get_all_values(span)
 
+        # relate the pollutant to its values
         if pol not in article_data:
             article_data[pol] = values
         else:
@@ -326,17 +405,29 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def two_in_one_matcher(matcher, doc, i, matches):
+        """
+        This function gets called once the two_in_one_matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # get pollutants and values
         pollutants = get_all_pollutants(span)
         values = get_values(span)
 
+        # check if valid two in one patter, there have to be two values for one pollutant
         if 2*len(pollutants) != len(values):
             return
 
+        # relate each pollutant to its values
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -352,17 +443,29 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def two_pol_one_value_matcher(matcher, doc, i, matches):
+        """
+        This function get called once the two_pol_one_value matcher finds its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
         match_id, start, end = matches[i]
 
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # get pollutants and values
         pollutants = get_all_pollutants(span)
         value = get_values(span)
 
+        # check if valid two pol one value pattern, there has to be exactly one value
         if len(value) != 1:
             return
 
+        # relate each pollutant to the value
         for j in range(len(pollutants)):
             current_pollutant = pollutants[j]
             if current_pollutant not in article_data:
@@ -374,6 +477,16 @@ def extract_text(directory):
         highlight_match(span.sent.text)
 
     def table_finder(matcher, doc, i, matches):
+        """
+        This function gets called once the table_finder matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
+        # check if page was already processed
         if pg+1 in pages:
             return
 
@@ -382,18 +495,24 @@ def extract_text(directory):
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # get the pollutant
         pollutant = get_pollutant(span)
         print(pollutant)
 
+        # extract the tables on the current page
         df = tabula.read_pdf(directory + file, pages=pg+1)
         for d in df:
             values = []
             print("##########################")
             interesting_row = -1
+
+            # find the row that contains the percentage numbers
             for idx, row in d.iloc[:, :1].iterrows():
                 if "percent change" in str(row[0]).lower():
                     interesting_row = idx
             if interesting_row != -1:
+
+                # get the values from the row
                 for v in d.iloc[interesting_row]:
                     try:
                         neg = False
@@ -409,6 +528,8 @@ def extract_text(directory):
                         values.append(v)
                     except ValueError:
                         print(str(v) + " not a value")
+
+                # relate the pollutant to its values
                 if pollutant not in article_data:
                     article_data[pollutant] = values
                 else:
@@ -416,11 +537,23 @@ def extract_text(directory):
                         if v not in article_data[pollutant]:
                             article_data[pollutant].append(v)
 
+                # call the highlight function to highlight the pattern in the text
                 highlight_match(span.sent.text)
 
+        # mark page as processed
         pages.append(pg+1)
 
     def different_pol_table(matcher, doc, i, matches):
+        """
+        This function gets called once the different_pol_table matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
+        # check if page was already processed
         if pg+1 in pages:
             return
 
@@ -429,16 +562,20 @@ def extract_text(directory):
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # extract the tables on the current page
         df = tabula.read_pdf(directory + file, pages=pg+1)
         for d in df:
             print("########################")
             current_pol = "NO POLLUTANT"
+            # the column name corresponds to a pollutant here, so we mainly need to get the values
             for name, values_table in d.iteritems():
+                # get the pollutant of the column
                 current_name = fix_pollutant(name.replace("Country ", ""))
                 if current_name in pollutants_no_number:
                     current_pol = current_name
                 print(current_pol)
                 values = []
+                # get the values in the column
                 for v in values_table:
                     v = str(v)
                     v = v.split()[-1]
@@ -456,6 +593,8 @@ def extract_text(directory):
                         values.append(v)
                     except ValueError:
                         print(str(v) + " not a value")
+
+                # relate the pollutant to its values
                 if current_pol not in article_data:
                     article_data[current_pol] = values
                 else:
@@ -467,6 +606,16 @@ def extract_text(directory):
         pages.append(pg+1)
 
     def huge_layout_fail_table(matcher, doc, i, matches):
+        """
+        This function gets called once the weird_layout matcher found its pattern in the text.
+        It then processes the match and extracts the information regarding the pollutants.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
+        # check if page was already processed
         if pg+1 in pages:
             return
 
@@ -475,12 +624,15 @@ def extract_text(directory):
         # this is the extracted passage in the text
         span = doc[start:end]
 
+        # extract the tables on the current page
         df = tabula.read_pdf(directory + file, pages=pg+1)
         for d in df:
             print("########################")
             current_pol = "NO POLLUTANT"
+            # this time, the pollutant is not at the top of the column
             for name, values_table in d.iteritems():
                 values = []
+                # get the pollutant and the values of the column
                 for v in values_table:
                     v = fix_pollutant(str(v))
                     if v in pollutants_no_number:
@@ -500,6 +652,8 @@ def extract_text(directory):
                         values.append(v)
                     except ValueError:
                         print(str(v) + " not a value")
+
+                # relate the pollutant to its values
                 if current_pol not in article_data:
                     article_data[current_pol] = values
                 else:
@@ -509,6 +663,32 @@ def extract_text(directory):
 
         highlight_match(span.sent.text)
         pages.append(pg+1)
+
+    def table_highlighter(matcher, doc, i, matches):
+        """
+        This function gets called once the table_highlighter matcher found its pattern in the text.
+        It then highlights the sentence that contains the match.
+        :param matcher: the matcher which invoked this function
+        :param doc: the document on which it searched
+        :param i: the position of the current match
+        :param matches: the total list of matches
+        :return:
+        """
+        match_id, start, end = matches[i]
+
+        # this is the extracted passage in the text
+        span = doc[start:end]
+
+        # check if it's the start of the sentence, otherwise it won't be a caption
+        if not span[0].is_sent_start:
+            return
+
+        # print("#####################################################################################################")
+        # print("highlighted a caption")
+        # print(span.text)
+
+        # print("#####################################################################################################")
+        highlight_match(span.sent.text)
 
     nlp = spacy.load("en_core_web_sm")
     matcher = Matcher(nlp.vocab)
@@ -657,7 +837,11 @@ def extract_text(directory):
     table_1 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": "(", "OP": "?"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"LEMMA": "calculate"}]
     table_2 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"LOWER": "maximum"}, {"TEXT": "daily"}, {"TEXT": "delta"}, {"OP": "*"}, {"TEXT": "of"}, {"LEMMA": "concentration"}, {"TEXT": "("}, {"TEXT": "%"}, {"TEXT": ")"}]
     table_3 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": "%"}, {"OP": "*"}, {"TEXT": "of"}, {"OP": "*"}, {"TEXT": "daily"}, {"TEXT": "maximum"}, {"TEXT": {"IN": pollutants_no_number}}]
+    table_4 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": {"NOT_IN": ["."]}, "OP": "+"}, {"TEXT": "%"}, {"TEXT": {"NOT_IN": ["."]}, "OP": "+"}, {"LEMMA": "concentration"}]
+    table_5 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": {"NOT_IN": ["."]}, "OP": "+"}, {"LEMMA": "concentration"}, {"TEXT": {"NOT_IN": ["."]}, "OP": "+"}, {"TEXT": "%"}]
+    table_6 = [{"TEXT": "Table"}, {"POS": "NUM"}, {"OP": "*"}, {"TEXT": {"NOT_IN": ["."]}, "OP": "+"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration"}]
 
+    # here we add our patterns to the different matchers and specify which function should be called
     matcher.add("no_poll_matcher", [pattern_15, pattern_8, pattern_7, no_pollutant_pattern, pattern_c, pattern_l], on_match=no_pollutant_match)
     matcher.add("bracket_matcher", [pattern, long_pattern, two_pattern, pattern_22, pattern_14, pattern_13, pattern_12, pattern_9, pattern_3, pol_after_number_pattern, second_basic_pattern, pattern_a, pattern_b, long_pattern_2, pattern_d, pattern_e, pattern_f, pattern_m, pattern_t, pattern_v], on_match=bracket_matcher)
     matcher.add("multi_matcher", [pattern_21, pattern_19, pattern_17, pattern_16, pattern_5, pattern_1, multi_pattern, second_multi_pattern, two_pattern_reverse, pattern_i, pattern_j, pattern_o, pattern_g, pattern_p, pattern_r, pattern_s, pattern_u, pattern_w, pattern_x, pattern_y], on_match=multi_matcher)
@@ -672,6 +856,7 @@ def extract_text(directory):
     matcher.add("table_finder", [table_1], on_match=table_finder)
     matcher.add("different_pol_table", [table_2], on_match=different_pol_table)
     matcher.add("weird_layout", [table_3], on_match=huge_layout_fail_table)
+    matcher.add("table_highlighter", [table_4, table_5, table_6], on_match=table_highlighter)
 
     # TODO
     # EASTASIA FOR TABLES and europe, europe2!
@@ -801,7 +986,7 @@ def get_pollutant(sent):
 
 def get_all_pollutants(sent):
     """
-    This function searches a sentence for all occuring pollutants
+    This function searches a sentence for all occurring pollutants
     :param sent: the sentence that should be searched
     :return: the found pollutants
     """
@@ -827,13 +1012,16 @@ def get_values(sent):
             down = True
         elif tok.lemma_ in positive or tok.text[0] == "+":
             down = False
-        # add the actual numerical value of the pollutant
+
+        # the last word in a sentence can't be a value, so break if that's the case
         if tok.i + 1 == len(tok.doc):
             break
+
+        # now look for a value
         if re.search(number_regex, tok.text) and tok.nbor().text in ["to", "%", "±"]:
             if tok.nbor().text in ["to", "±"] and tok.nbor().nbor().nbor().text != "%":
                 continue
-            # check if the text contains more than just the number
+            # check if the text contains more than just the number and adjust if needed
             text = tok.text
             if text[0] in ["−", "+", "~", "-"]:
                 text = text[1:]
@@ -891,6 +1079,11 @@ def get_values(sent):
 
 
 def get_plus_minus_values(sent):
+    """
+    This function searches a sentence for values that cover a range of values.
+    :param sent: the sentence that should be searched
+    :return: a list of values for the pollutant
+    """
     values = []
     down = True
     for tok in sent:
@@ -899,11 +1092,11 @@ def get_plus_minus_values(sent):
             down = True
         elif tok.lemma_ in positive or tok.text[0] == "+":
             down = False
-        # add the actual numerical value of the pollutant
+        # find a number
         if re.search(number_regex, tok.text):
             # check if ± is next
             if tok.nbor().text == "±" or tok.nbor().text == "%" and tok.nbor().nbor().text == "±":
-                # check if the text contains more than just the number
+                # check if the text contains more than just the number and adjust if needed
                 text = tok.text
                 if text[0] in ["−", "+", "~"]:
                     text = text[1:]
@@ -933,6 +1126,11 @@ def get_plus_minus_values(sent):
 
 
 def get_no_trend_values(sent):
+    """
+    This function searches a sentence for values that have the trend in front of their number.
+    :param sent: the sentence that should be searched
+    :return: a list of values for the pollutant
+    """
     values = []
     for tok in sent:
         if tok.text not in pollutants_no_number and re.search(number_regex, tok.text):
@@ -945,6 +1143,11 @@ def get_no_trend_values(sent):
 
 
 def get_all_values(sent):
+    """
+    This function searches a sentence for all values, no matter if there is a percentage sign or not.
+    :param sent: the sentence that should be searched
+    :return: a list of values for the pollutant
+    """
     values = []
     down = True
     for tok in sent:
@@ -964,6 +1167,11 @@ def get_all_values(sent):
 
 
 def fix_pollutant(pollutant):
+    """
+    This function converts different spellings of pollutants into one.
+    :param pollutant: the pollutant that needs to be converted
+    :return: the converted pollutant
+    """
     if pollutant in no2_list:
         return "NO2"
     if pollutant in nox_list:
