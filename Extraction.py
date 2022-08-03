@@ -6,6 +6,7 @@ from spacy.matcher import Matcher
 import spacy
 import re
 import tabula
+from spacy import displacy
 
 
 no2_list = ["NO2", "AQINO2", "NO₂"]
@@ -141,7 +142,7 @@ def extract_text(directory):
         # this is the extracted passage in the text
         span = doc[start:end]
         # print("called bracket matcher with " + span.text)
-
+        # displacy.serve(span)
         # these are the previous few words, to check if there are multiple pollutants in one sentence because if so, we have to ignore it
         span_previous = doc[start-3:start]
         if len(span_previous) > 2:
@@ -747,6 +748,8 @@ def extract_text(directory):
     pattern_13 = [{"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"POS": "NUM", "OP": "?"}, {"LEMMA": "remain", "OP": "?"}, {"TEXT": "basically", "OP": "?"}, {"TEXT": "unchanged", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "Fig", "OP": "?"}, {"TEXT": ".", "OP": "?"}, {"TEXT": {"REGEX": "S[1-9]c"}, "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"LEMMA": "be", "OP": "?"}, {"POS": "NUM", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "which", "OP": "?"}, {"LEMMA": {"IN": ["be", "show"]}}, {"TEXT": "a", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "(", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "/", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": "and", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"LEMMA": {"IN": trend}}]
     # O3 increase (Fig. S5b), averaging 14.7% at SB and 8% at
     pattern_14 = [{"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"TEXT": "PL", "OP": "?"}, {"LEMMA": "have", "OP": "?"}, {"TEXT": "a", "OP": "?"}, {"TEXT": "substantial", "OP": "?"}, {"LEMMA": {"IN": trend}}, {"TEXT": "(", "OP": "?"}, {"TEXT": "Fig", "OP": "?"}, {"TEXT": ".", "OP": "?"}, {"TEXT": {"REGEX": "S[1-9]b"}, "OP": "?"}, {"TEXT": ")", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"LEMMA": "range", "OP": "?"}, {"TEXT": {"IN": ["by", "averaging", "of", "between", "before"]}}, {"TEXT": "(", "OP": "?"}, {"TEXT": "–", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": ["in", "at"]}, "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": "SB", "OP": "?"}, {"TEXT": ")", "OP": "?"},{"TEXT": ",", "OP": "?"}, {"TEXT": {"REGEX": number_regex}, "OP": "?"}, {"TEXT": "%", "OP": "?"}, {"TEXT": "in", "OP": "?"}, {"POS": "PROPN", "OP": "?"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"POS": "ADP", "OP": "?"}, {"TEXT": "(", "OP": "?"}, {"TEXT": "–", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "respectively", "OP": "!"}]
+    # 70% and 20–30% NO2 reduction
+    pattern_22 = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": {"IN": trend}}]
 
     # #### MULTI PATTERNS #### #
     multi_pattern = [{"LEMMA": {"IN": trend}}, {"TEXT": "of"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": "and"}, {"TEXT": "~", "OP": "?"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": ["in", "for"]}}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}]
@@ -782,8 +785,6 @@ def extract_text(directory):
     pattern_19 = [{"LEMMA": {"IN": trend}}, {"TEXT": "in"}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ","}, {"TEXT": {"IN": pollutants_no_number}}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "be"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "-"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "-"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "-"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "-"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": ",", "OP": "?"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "-"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}]
     # PM2.5 and PM10 concentration, 32.29% and 33.72% reduction
     pattern_21 = [{"TEXT": {"IN": pollutants_no_number}}, {"TEXT": "and"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": "concentration"}, {"TEXT": ","}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"LEMMA": {"IN": trend}}]
-    # 70% and 20–30% NO2 reduction
-    pattern_22 = [{"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": "and"}, {"TEXT": {"REGEX": number_regex}}, {"TEXT": "%"}, {"TEXT": {"IN": pollutants_no_number}}, {"LEMMA": {"IN": trend}}]
 
     # #### PLUS - MINUS PATTERNS #### #
     # PM2.5 and NO2 in northern China have decreased by approximately (29 ± 22%) and (53 ± 10%)
@@ -859,7 +860,7 @@ def extract_text(directory):
     matcher.add("table_highlighter", [table_4, table_5, table_6], on_match=table_highlighter)
 
     # TODO
-    # EASTASIA FOR TABLES and europe, europe2!
+    # EASTASIA FOR TABLES and europe, europe2! world? world8?
     # check if it is a bracket or multi pattern
     # fix two in one multimatcher (thailand O3)
 
