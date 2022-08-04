@@ -5,14 +5,14 @@ import sys
 pollutants = ["NO2", "PM25", "PM10", "BC", "NOX", "CO", "O3", "SO2", "NH3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO3", "SO4", "OM", "BBOA", "HOA", "OOA", "PM1"]
 
 
-def main():
+def main(training_set):
     """
     This function evaluates the entire available data. This includes both training and test data.
     :return:
     """
 
     # read in our training and extracted datasets
-    training_data = pd.read_csv("./training_data.csv", sep=";")
+    training_data = pd.read_csv(training_set, sep=";")
     extracted_data = pd.read_csv("./extracted_data.csv")
 
     # rename the interesting columns
@@ -30,64 +30,6 @@ def main():
     # find amount of correctly extracted data
     correctly_extracted = get_correctly_extracted(extracted_data, training_data, needed_pollutants)
     
-    # calculate precision and recall
-    calculate_score(extracted_counter, total_amount, correctly_extracted)
-
-
-def eval_training():
-    """
-    This function evaluates the extracted data in terms of training data.
-    :return:
-    """
-
-    # read in our training and extracted datasets
-    training_data = pd.read_csv("./only_training.csv", sep=";")
-    extracted_data = pd.read_csv("./extracted_data.csv")
-    
-    # rename the interesting columns
-    training_data.rename(columns = {"NO2_prcnt_change":"NO2", "NOX_prcnt_change":"NOX", "CO_prcnt_change":"CO", "PM25_prcnt_change":"PM25", "PM10_prcnt_change":"PM10", "O3_prcnt_change":"O3", "SO2_prcnt_change":"SO2", "NH3_prcnt_change":"NH3", "NMVOCS_prcnt_change":"NMVOCS", "AOD_prcnt_change":"AOD", "BC_prcnt_change":"BC", "AQI_prcnt_change":"AQI", "BCFF_prcnt_change":"BCFF", "BCWB_prcnt_change":"BCWB", "NO3_prcnt_change":"NO3", "SO4_prcnt_change":"SO4", "OM_prcnt_change":"OM", "PM1_prcnt_change":"PM1", "BBOA_prcnt_change":"BBOA", "HOA_prcnt_change":"HOA", "OOA_prcnt_change":"OOA"}, inplace = True)
-
-    # get the needed pollutants
-    needed_pollutants = get_needed_pollutants(extracted_data)
-
-    # count the total amount of data points in the training data to be able to calculate the recall value, we only count the columns regarding percent change
-    total_amount = get_total_data(training_data)
-
-    # convert long string back to lists in the extracted data, also return amount of extracted data
-    extracted_data, extracted_counter = convert_to_list(extracted_data, needed_pollutants)
-
-    # find amount of correctly extracted data
-    correctly_extracted = get_correctly_extracted(extracted_data, training_data, needed_pollutants)
-
-    # calculate precision and recall
-    calculate_score(extracted_counter, total_amount, correctly_extracted)
-
-
-def eval_test():
-    """
-    This function evaluates the extracted data in terms of test data.
-    :return:
-    """
-
-    # read in our training and extracted datasets
-    training_data = pd.read_csv("./test_data.csv", sep=";")
-    extracted_data = pd.read_csv("./extracted_data.csv")
-
-    # rename the interesting columns
-    training_data.rename(columns = {"NO2_prcnt_change":"NO2", "NOX_prcnt_change":"NOX", "CO_prcnt_change":"CO", "PM25_prcnt_change":"PM25", "PM10_prcnt_change":"PM10", "O3_prcnt_change":"O3", "SO2_prcnt_change":"SO2", "NH3_prcnt_change":"NH3", "NMVOCS_prcnt_change":"NMVOCS", "AOD_prcnt_change":"AOD", "BC_prcnt_change":"BC", "AQI_prcnt_change":"AQI", "BCFF_prcnt_change":"BCFF", "BCWB_prcnt_change":"BCWB", "NO3_prcnt_change":"NO3", "SO4_prcnt_change":"SO4", "OM_prcnt_change":"OM", "PM1_prcnt_change":"PM1", "BBOA_prcnt_change":"BBOA", "HOA_prcnt_change":"HOA", "OOA_prcnt_change":"OOA"}, inplace = True)
-
-    # get the needed pollutants
-    needed_pollutants = get_needed_pollutants(extracted_data)
-
-    # count the total amount of data points in the training data to be able to calculate the recall value, we only count the columns regarding percent change
-    total_amount = get_total_data(training_data)
-
-    # convert long string back to lists in the extracted data, also return amount of extracted data
-    extracted_data, extracted_counter = convert_to_list(extracted_data, needed_pollutants)
-
-    # find amount of correctly extracted data
-    correctly_extracted = get_correctly_extracted(extracted_data, training_data, needed_pollutants)
-
     # calculate precision and recall
     calculate_score(extracted_counter, total_amount, correctly_extracted)
 
@@ -209,10 +151,10 @@ if __name__ == "__main__":
         print("Maximum of one argument")
     elif len(sys.argv) == 2:
         if sys.argv[1] == "training":
-            eval_training()
+            main("./only_training.csv")
         elif sys.argv[1] == "test":
-            eval_test()
+            main("./test_data.csv")
         else:
             print("Argument is either test or training")
     else:
-        main()
+        main("./training_data.csv")
