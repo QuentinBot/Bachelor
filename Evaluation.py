@@ -1,38 +1,8 @@
-import numpy as np
 import pandas as pd
 import sys
 
 # all available pollutants
 pollutants = ["NO2", "PM25", "PM10", "BC", "NOX", "CO", "O3", "SO2", "NH3", "NMVOCS", "AOD", "AQI", "BCFF", "BCWB", "NO3", "SO4", "OM", "BBOA", "HOA", "OOA", "PM1"]
-  
-
-# function for converting back strings that used to be lists, for a better analysis
-def convert_to_list(data, columns):
-    """
-    This function converts back strings that used to be lists.
-    For further analysis, working with lists is much easier than working with strings.
-    :param data: a panda dataframe containing the data as strings
-    :param columns: the column names of the data
-    :return: a tuple of the panda dataframe (now containing lists instead of strings), combined with the total number of extracted values 
-    """
-    counter = 0
-    for c in columns:
-        for r in range(data.shape[0]):
-            if not pd.isna(data[c][r]):
-                list = []
-                reading = False
-                current_value = ""
-                for char in data[c][r]:
-                    if char == "'":
-                        if reading:
-                            list.append(current_value)
-                            current_value = ""
-                            counter += 1
-                        reading = not reading
-                    elif reading:
-                        current_value += char
-                data[c][r] = list        
-    return data, counter
 
 
 def main():
@@ -150,6 +120,34 @@ def get_total_data(training_data):
             if not pd.isna(training_data[column][i]):
                 total_amount += 1
     return total_amount
+
+
+def convert_to_list(data, columns):
+    """
+    This function converts back strings that used to be lists.
+    For further analysis, working with lists is much easier than working with strings.
+    :param data: a panda dataframe containing the data as strings
+    :param columns: the column names of the data
+    :return: a tuple of the panda dataframe (now containing lists instead of strings), combined with the total number of extracted values 
+    """
+    counter = 0
+    for c in columns:
+        for r in range(data.shape[0]):
+            if not pd.isna(data[c][r]):
+                list = []
+                reading = False
+                current_value = ""
+                for char in data[c][r]:
+                    if char == "'":
+                        if reading:
+                            list.append(current_value)
+                            current_value = ""
+                            counter += 1
+                        reading = not reading
+                    elif reading:
+                        current_value += char
+                data[c][r] = list        
+    return data, counter
 
 
 def get_correctly_extracted(extracted_data, training_data, needed_pollutants):
