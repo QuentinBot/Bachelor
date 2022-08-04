@@ -36,6 +36,11 @@ def convert_to_list(data, columns):
 
 
 def main():
+    """
+    This function evaluates the entire available data. This includes both training and test data.
+    :return:
+    """
+
     # read in our training and extracted datasets
     training_data = pd.read_csv("./training_data.csv", sep=";")
     extracted_data = pd.read_csv("./extracted_data.csv")
@@ -60,6 +65,11 @@ def main():
 
 
 def eval_training():
+    """
+    This function evaluates the extracted data in terms of training data.
+    :return:
+    """
+
     # read in our training and extracted datasets
     training_data = pd.read_csv("./only_training.csv", sep=";")
     extracted_data = pd.read_csv("./extracted_data.csv")
@@ -84,6 +94,11 @@ def eval_training():
 
 
 def eval_test():
+    """
+    This function evaluates the extracted data in terms of test data.
+    :return:
+    """
+
     # read in our training and extracted datasets
     training_data = pd.read_csv("./test_data.csv", sep=";")
     extracted_data = pd.read_csv("./extracted_data.csv")
@@ -108,6 +123,11 @@ def eval_test():
 
 
 def get_needed_pollutants(extracted_data):
+    """
+    This function searches the extracted data for pollutants.
+    :param extracted_data: the extracted data
+    :return: the pollutants that occur in the extracted data
+    """
 
     # a list for the actually needed pollutants present in the extracted dataset
     needed_pollutants = []
@@ -118,6 +138,11 @@ def get_needed_pollutants(extracted_data):
 
 
 def get_total_data(training_data):
+    """
+    This function counts the entries in the training data.
+    :param training_data: the training data
+    :return: the total amount of entries
+    """
 
     total_amount = 0
     for i in range(training_data.shape[0]):        
@@ -128,7 +153,14 @@ def get_total_data(training_data):
 
 
 def get_correctly_extracted(extracted_data, training_data, needed_pollutants):
-    
+    """
+    This function compares the extracted data to the training data and counts the correctly extracted data.
+    :param extracted_data: the extracted data
+    :param training_data: the training data
+    :param needed_pollutants: the needed pollutants
+    :return: the amount of correctly extracted data
+    """
+
     # counter for correctly extracted data
     correctly_extracted = 0
     
@@ -159,6 +191,13 @@ def get_correctly_extracted(extracted_data, training_data, needed_pollutants):
 
 
 def calculate_score(extracted_counter, total_amount, correctly_extracted):
+    """
+    This function calculates the precision and recall values
+    :param extracted_counter: the amount of entries in the extracted data
+    :param total_amount: the amount of entries in the training data
+    :param correctly_extracted: the amount of correctly extracted data
+    :return:
+    """
 
     recall = round(correctly_extracted / total_amount * 100, 2)
     precision = round(correctly_extracted / extracted_counter * 100, 2)
@@ -167,7 +206,7 @@ def calculate_score(extracted_counter, total_amount, correctly_extracted):
 
 
 if __name__ == "__main__":
-    
+    # check the argument to see which evaluation to call
     if len(sys.argv) > 2:
         print("Maximum of one argument")
     elif len(sys.argv) == 2:
