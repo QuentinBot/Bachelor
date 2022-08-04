@@ -1,3 +1,5 @@
 Doc/articles/PDF/*.pdf
 highlighted/*.pdf
 .~lock.*
+Doc/articles/TEMP
+Doc/articles/testdata
