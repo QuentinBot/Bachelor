@@ -3,3 +3,4 @@ highlighted/*.pdf
 .~lock.*
 Doc/articles/TEMP
 Doc/articles/testdata
+.idea
